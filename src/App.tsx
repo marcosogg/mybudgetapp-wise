@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Categories from "./pages/Categories";
 
 const queryClient = new QueryClient();
 
@@ -56,18 +57,18 @@ const App = () => (
           />
           <Route path="/auth" element={<Auth />} />
           <Route
-            path="/transactions"
+            path="/categories"
             element={
               <ProtectedRoute>
-                <div>Transactions Page</div>
+                <Categories />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/categories"
+            path="/transactions"
             element={
               <ProtectedRoute>
-                <div>Categories Page</div>
+                <div>Transactions Page</div>
               </ProtectedRoute>
             }
           />
