@@ -1,6 +1,7 @@
 import { Home, PieChart, List, Bell, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export const Sidebar = () => {
   const navigate = useNavigate();
