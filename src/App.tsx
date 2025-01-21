@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
@@ -35,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  return <>{children}</>;
+  return <DashboardLayout>{children}</DashboardLayout>;
 };
 
 const App = () => (
@@ -54,6 +55,38 @@ const App = () => (
             }
           />
           <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <div>Transactions Page</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <div>Categories Page</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reminders"
+            element={
+              <ProtectedRoute>
+                <div>Reminders Page</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mappings"
+            element={
+              <ProtectedRoute>
+                <div>Mappings Page</div>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
