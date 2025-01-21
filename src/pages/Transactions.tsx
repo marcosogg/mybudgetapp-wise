@@ -18,74 +18,72 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data
-const mockTransactions = [
-  {
-    id: "1",
-    date: "2024-02-01",
-    description: "Grocery Shopping",
-    amount: 85.50,
-    categoryId: "1",
-  },
-  {
-    id: "2",
-    date: "2024-02-02",
-    description: "Gas Station",
-    amount: 45.00,
-    categoryId: "2",
-  },
-  {
-    id: "3",
-    date: "2024-02-03",
-    description: "Movie Tickets",
-    amount: 30.00,
-    categoryId: "3",
-  },
-  {
-    id: "4",
-    date: "2024-02-04",
-    description: "Electric Bill",
-    amount: 120.00,
-    categoryId: "4",
-  },
-];
+import { CategoryBadge } from "@/components/transactions/CategoryBadge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type Transaction = {
   id: string;
   date: string;
   description: string;
   amount: number;
-  categoryId: string;
+  category_id: string | null;
+  category?: {
+    name: string;
+  } | null;
 };
 
 type SortField = "date" | "description" | "amount";
 type SortOrder = "asc" | "desc";
 
 const Transactions = () => {
-  const [transactions] = useState<Transaction[]>(mockTransactions);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [amountFilter, setAmountFilter] = useState<"all" | "above" | "below">("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(`
+          *,
+          category:category_id (
+            name
+          )
+        `)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      return data as Transaction[];
+    },
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name");
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const filteredAndSortedTransactions = useMemo(() => {
     let filtered = transactions.filter((transaction) =>
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Apply amount filter
-    if (amountFilter === "above") {
-      filtered = filtered.filter((t) => t.amount >= 50);
-    } else if (amountFilter === "below") {
-      filtered = filtered.filter((t) => t.amount < 50);
+    // Apply category filter
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter((t) =>
+        selectedCategory === "uncategorized"
+          ? !t.category_id
+          : t.category_id === selectedCategory
+      );
     }
 
     // Sort transactions
@@ -100,12 +98,19 @@ const Transactions = () => {
       }
       return multiplier * a[sortField].localeCompare(b[sortField]);
     });
-  }, [transactions, searchTerm, sortField, sortOrder, amountFilter]);
+  }, [transactions, searchTerm, sortField, sortOrder, selectedCategory]);
 
   const totalAmount = filteredAndSortedTransactions.reduce(
     (sum, transaction) => sum + transaction.amount,
     0
   );
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -115,6 +120,10 @@ const Transactions = () => {
       setSortOrder("asc");
     }
   };
+
+  if (isLoadingTransactions) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -161,16 +170,20 @@ const Transactions = () => {
               className="max-w-sm"
             />
             <Select
-              value={amountFilter}
-              onValueChange={(value: "all" | "above" | "below") => setAmountFilter(value)}
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
             >
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by amount" />
+                <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All amounts</SelectItem>
-                <SelectItem value="above">Above $50</SelectItem>
-                <SelectItem value="below">Below $50</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -199,6 +212,7 @@ const Transactions = () => {
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>
                   <Button
                     variant="ghost"
@@ -217,6 +231,9 @@ const Transactions = () => {
                 <TableRow key={transaction.id}>
                   <TableCell>{transaction.date}</TableCell>
                   <TableCell>{transaction.description}</TableCell>
+                  <TableCell>
+                    <CategoryBadge categoryName={transaction.category?.name ?? null} />
+                  </TableCell>
                   <TableCell>{formatCurrency(transaction.amount)}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm">
