@@ -21,13 +21,64 @@ type Transaction = {
 type SortField = "date" | "description" | "amount" | "category";
 type SortOrder = "asc" | "desc";
 
+// Mock data for testing
+const mockTransactions: Transaction[] = [
+  {
+    id: "1",
+    date: "2024-03-15",
+    description: "Grocery Shopping",
+    amount: 156.78,
+    category_id: "1",
+    category: { name: "Groceries" }
+  },
+  {
+    id: "2",
+    date: "2024-03-14",
+    description: "Netflix Subscription",
+    amount: 15.99,
+    category_id: "2",
+    category: { name: "Entertainment" }
+  },
+  {
+    id: "3",
+    date: "2024-03-13",
+    description: "Gas Station",
+    amount: 45.23,
+    category_id: "3",
+    category: { name: "Transportation" }
+  },
+  {
+    id: "4",
+    date: "2024-03-12",
+    description: "Restaurant",
+    amount: 89.99,
+    category_id: "4",
+    category: { name: "Dining" }
+  },
+  {
+    id: "5",
+    date: "2024-03-11",
+    description: "Amazon Purchase",
+    amount: 34.50,
+    category_id: null,
+    category: null
+  }
+];
+
+const mockCategories = [
+  { id: "1", name: "Groceries" },
+  { id: "2", name: "Entertainment" },
+  { id: "3", name: "Transportation" },
+  { id: "4", name: "Dining" },
+];
+
 const Transactions = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery({
+  const { data: transactions = mockTransactions, isLoading: isLoadingTransactions } = useQuery({
     queryKey: ["transactions"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,7 +96,7 @@ const Transactions = () => {
     },
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = mockCategories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
