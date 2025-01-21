@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,6 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Mock data
 const mockCategories = [
@@ -20,8 +29,48 @@ const mockCategories = [
   { id: "5", name: "Dining Out" },
 ];
 
+type Category = {
+  id: string;
+  name: string;
+};
+
 const Categories = () => {
-  const [categories] = useState(mockCategories);
+  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingCategory) {
+      // Edit existing category
+      setCategories(categories.map(cat => 
+        cat.id === editingCategory.id ? { ...cat, name: categoryName } : cat
+      ));
+    } else {
+      // Add new category
+      const newCategory = {
+        id: String(categories.length + 1),
+        name: categoryName,
+      };
+      setCategories([...categories, newCategory]);
+    }
+    
+    handleCloseDialog();
+  };
+
+  const handleEdit = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryName(category.name);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingCategory(null);
+    setCategoryName("");
+  };
 
   return (
     <div className="space-y-6">
@@ -32,10 +81,41 @@ const Categories = () => {
             Manage your transaction categories
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Category
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setCategoryName("")}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Category
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingCategory ? "Edit Category" : "Add Category"}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Category Name</Label>
+                <Input
+                  id="name"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="Enter category name"
+                  required
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" type="button" onClick={handleCloseDialog}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {editingCategory ? "Save Changes" : "Add Category"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -66,7 +146,12 @@ const Categories = () => {
                 <TableRow key={category.id}>
                   <TableCell>{category.name}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(category)}
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
                   </TableCell>

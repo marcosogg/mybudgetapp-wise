@@ -9,6 +9,7 @@ import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Categories from "./pages/Categories";
+import Transactions from "./pages/Transactions";
 
 const queryClient = new QueryClient();
 
@@ -68,7 +69,7 @@ const App = () => (
             path="/transactions"
             element={
               <ProtectedRoute>
-                <div>Transactions Page</div>
+                <Transactions />
               </ProtectedRoute>
             }
           />
