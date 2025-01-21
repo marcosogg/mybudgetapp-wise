@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthLayout } from "@/components/layouts/AuthLayout";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -50,8 +51,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-budget-gray flex items-center justify-center p-4 font-bricolage">
-      <Card className="w-full max-w-md p-6 space-y-6">
+    <AuthLayout>
+      <Card className="p-6 space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">
             {isSignUp ? "Create an account" : "Welcome back"}
@@ -111,7 +112,7 @@ const Auth = () => {
           </button>
         </div>
       </Card>
-    </div>
+    </AuthLayout>
   );
 };
 
