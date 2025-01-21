@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,6 +10,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Mock data
 const mockTransactions = [
@@ -51,8 +59,15 @@ type Transaction = {
   categoryId: string;
 };
 
+type SortField = "date" | "description" | "amount";
+type SortOrder = "asc" | "desc";
+
 const Transactions = () => {
   const [transactions] = useState<Transaction[]>(mockTransactions);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [amountFilter, setAmountFilter] = useState<"all" | "above" | "below">("all");
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -61,7 +76,45 @@ const Transactions = () => {
     }).format(amount);
   };
 
-  const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const filteredAndSortedTransactions = useMemo(() => {
+    let filtered = transactions.filter((transaction) =>
+      transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Apply amount filter
+    if (amountFilter === "above") {
+      filtered = filtered.filter((t) => t.amount >= 50);
+    } else if (amountFilter === "below") {
+      filtered = filtered.filter((t) => t.amount < 50);
+    }
+
+    // Sort transactions
+    return filtered.sort((a, b) => {
+      const multiplier = sortOrder === "asc" ? 1 : -1;
+      
+      if (sortField === "date") {
+        return multiplier * (new Date(a.date).getTime() - new Date(b.date).getTime());
+      }
+      if (sortField === "amount") {
+        return multiplier * (a.amount - b.amount);
+      }
+      return multiplier * a[sortField].localeCompare(b[sortField]);
+    });
+  }, [transactions, searchTerm, sortField, sortOrder, amountFilter]);
+
+  const totalAmount = filteredAndSortedTransactions.reduce(
+    (sum, transaction) => sum + transaction.amount,
+    0
+  );
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -84,7 +137,7 @@ const Transactions = () => {
             <CardTitle>Total Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{transactions.length}</p>
+            <p className="text-3xl font-bold">{filteredAndSortedTransactions.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -100,19 +153,67 @@ const Transactions = () => {
       <Card>
         <CardHeader>
           <CardTitle>Recent Transactions</CardTitle>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center mt-4">
+            <Input
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Select
+              value={amountFilter}
+              onValueChange={(value: "all" | "above" | "below") => setAmountFilter(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by amount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All amounts</SelectItem>
+                <SelectItem value="above">Above $50</SelectItem>
+                <SelectItem value="below">Below $50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("date")}
+                    className="flex items-center gap-2"
+                  >
+                    Date
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("description")}
+                    className="flex items-center gap-2"
+                  >
+                    Description
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("amount")}
+                    className="flex items-center gap-2"
+                  >
+                    Amount
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((transaction) => (
+              {filteredAndSortedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>{transaction.date}</TableCell>
                   <TableCell>{transaction.description}</TableCell>
