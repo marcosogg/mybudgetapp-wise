@@ -1,26 +1,11 @@
 import { useState, useMemo } from "react";
-import { Plus, ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CategoryBadge } from "@/components/transactions/CategoryBadge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TransactionHeader } from "@/components/transactions/TransactionHeader";
+import { TransactionStats } from "@/components/transactions/TransactionStats";
+import { TransactionFilters } from "@/components/transactions/TransactionFilters";
+import { TransactionTable } from "@/components/transactions/TransactionTable";
 
 type Transaction = {
   id: string;
@@ -33,7 +18,7 @@ type Transaction = {
   } | null;
 };
 
-type SortField = "date" | "description" | "amount";
+type SortField = "date" | "description" | "amount" | "category";
 type SortOrder = "asc" | "desc";
 
 const Transactions = () => {
@@ -77,7 +62,6 @@ const Transactions = () => {
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Apply category filter
     if (selectedCategory !== "all") {
       filtered = filtered.filter((t) =>
         selectedCategory === "uncategorized"
@@ -86,7 +70,6 @@ const Transactions = () => {
       );
     }
 
-    // Sort transactions
     return filtered.sort((a, b) => {
       const multiplier = sortOrder === "asc" ? 1 : -1;
       
@@ -95,6 +78,11 @@ const Transactions = () => {
       }
       if (sortField === "amount") {
         return multiplier * (a.amount - b.amount);
+      }
+      if (sortField === "category") {
+        const categoryA = a.category?.name ?? "";
+        const categoryB = b.category?.name ?? "";
+        return multiplier * categoryA.localeCompare(categoryB);
       }
       return multiplier * a[sortField].localeCompare(b[sortField]);
     });
@@ -127,123 +115,33 @@ const Transactions = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold">Transactions</h2>
-          <p className="text-muted-foreground">
-            Manage your financial transactions
-          </p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Transaction
-        </Button>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{filteredAndSortedTransactions.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Amount</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{formatCurrency(totalAmount)}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <TransactionHeader />
+      
+      <TransactionStats 
+        transactionCount={filteredAndSortedTransactions.length}
+        totalAmount={totalAmount}
+        formatCurrency={formatCurrency}
+      />
 
       <Card>
         <CardHeader>
           <CardTitle>Recent Transactions</CardTitle>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center mt-4">
-            <Input
-              placeholder="Search transactions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="uncategorized">Uncategorized</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <TransactionFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            categories={categories}
+          />
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("date")}
-                    className="flex items-center gap-2"
-                  >
-                    Date
-                    <ArrowUpDown className="h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("description")}
-                    className="flex items-center gap-2"
-                  >
-                    Description
-                    <ArrowUpDown className="h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("amount")}
-                    className="flex items-center gap-2"
-                  >
-                    Amount
-                    <ArrowUpDown className="h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAndSortedTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>{transaction.date}</TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>
-                    <CategoryBadge categoryName={transaction.category?.name ?? null} />
-                  </TableCell>
-                  <TableCell>{formatCurrency(transaction.amount)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <TransactionTable
+            transactions={filteredAndSortedTransactions}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            toggleSort={toggleSort}
+            formatCurrency={formatCurrency}
+          />
         </CardContent>
       </Card>
     </div>
