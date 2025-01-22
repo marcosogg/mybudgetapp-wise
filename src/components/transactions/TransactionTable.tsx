@@ -52,17 +52,18 @@ export const TransactionTable = ({
       }
 
       const updateData = {
-        ...values,
+        date: values.date,
+        description: values.description,
+        amount: values.amount,
+        category_id: values.category_id === "null" ? null : values.category_id,
         user_id: user.id,
-        category_id: values.category_id === "null" ? null : values.category_id
       };
 
       const { error } = await supabase
         .from("transactions")
         .update(updateData)
         .eq("id", editingTransaction.id)
-        .eq("user_id", user.id)
-        .single();
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
