@@ -3,18 +3,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { CategoryBadge } from "./CategoryBadge";
 import { Pencil, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-interface Transaction {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  category_id: string | null;
-  category?: {
-    name: string;
-  } | null;
-  tags?: string[];
-}
+import { Transaction } from "@/types/transaction";
 
 interface TransactionTableRowProps {
   transaction: Transaction;

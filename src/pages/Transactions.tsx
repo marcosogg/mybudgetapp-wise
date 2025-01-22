@@ -6,17 +6,7 @@ import { TransactionHeader } from "@/components/transactions/TransactionHeader";
 import { TransactionStats } from "@/components/transactions/TransactionStats";
 import { TransactionFilters } from "@/components/transactions/TransactionFilters";
 import { TransactionTable } from "@/components/transactions/TransactionTable";
-
-type Transaction = {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  category_id: string | null;
-  category?: {
-    name: string;
-  } | null;
-};
+import { Transaction } from "@/types/transaction";
 
 type SortField = "date" | "description" | "amount" | "category";
 type SortOrder = "asc" | "desc";
