@@ -58,7 +58,8 @@ export const TransactionTable = ({
           user_id: user.id,
           category_id: values.category_id === "null" ? null : values.category_id
         })
-        .eq("id", editingTransaction.id);
+        .eq("id", editingTransaction.id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
