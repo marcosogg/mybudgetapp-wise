@@ -1,21 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Upload, FileText, AlertCircle } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { FileUpload } from "@/components/transactions/import/FileUpload";
+import { CSVPreview } from "@/components/transactions/import/CSVPreview";
 
 interface CSVRow {
   date: string;
@@ -103,7 +95,6 @@ const TransactionImport = () => {
         throw new Error("User not authenticated");
       }
 
-      // Upload to temp storage
       const filePath = `${user.id}/${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('temp_csv_files')
@@ -111,7 +102,6 @@ const TransactionImport = () => {
 
       if (uploadError) throw uploadError;
 
-      // Process the CSV file
       const { data, error } = await supabase.functions.invoke('process-csv', {
         body: { filePath, userId: user.id }
       });
@@ -123,7 +113,6 @@ const TransactionImport = () => {
         description: `Successfully imported ${data.transactionsCreated} transactions`,
       });
 
-      // Refresh transactions data and navigate back
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
       navigate('/transactions');
 
@@ -157,81 +146,19 @@ const TransactionImport = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-center w-full">
-              <label
-                htmlFor="file-upload"
-                className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" />
-                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to select</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    CSV files only
-                  </p>
-                </div>
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <FileUpload
+              onFileChange={handleFileChange}
+              error={error}
+              file={file}
+            />
 
             {file && !error && (
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  Selected file: {file.name}
-                </div>
-
-                {previewData.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Preview (First 5 rows)</h3>
-                    <div className="border rounded-lg">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            {headers.map((header) => (
-                              <TableHead key={header}>{header}</TableHead>
-                            ))}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {previewData.map((row, index) => (
-                            <TableRow key={index}>
-                              {headers.map((header) => (
-                                <TableCell key={header}>
-                                  {row[header.toLowerCase()]}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button 
-                        onClick={processFile} 
-                        disabled={isProcessing}
-                      >
-                        {isProcessing ? "Processing..." : "Process Import"}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <CSVPreview
+                headers={headers}
+                previewData={previewData}
+                onProcess={processFile}
+                isProcessing={isProcessing}
+              />
             )}
           </div>
         </CardContent>
