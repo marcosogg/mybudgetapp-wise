@@ -10,6 +10,7 @@ import { normalizeTags } from "@/utils/tagUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface TransactionFormProps {
   initialData?: TransactionFormValues;
@@ -39,6 +40,29 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
     },
   });
 
+  // Subscribe to real-time updates for transactions
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions'
+        },
+        () => {
+          // Refresh transactions data when changes occur
+          queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const handleSubmit = async (values: TransactionFormValues) => {
     const normalizedTags = normalizeTags(values.tags.join(','));
     
@@ -63,17 +87,33 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
               user_id: user.id,
             });
             
-            // Invalidate mappings query to refresh the data
+            // Invalidate both mappings and transactions queries to refresh the data
             queryClient.invalidateQueries({ queryKey: ["mappings"] });
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
             
             toast({
               title: "Category mapping created",
-              description: "This category will be automatically selected for future transactions with the same description.",
+              description: "This category will be automatically applied to all transactions with the same description.",
+            });
+          } else if (existingMapping.category_id !== values.category_id) {
+            // Update existing mapping if category has changed
+            await supabase
+              .from("mappings")
+              .update({ category_id: values.category_id })
+              .eq("id", existingMapping.id);
+            
+            // Invalidate both mappings and transactions queries to refresh the data
+            queryClient.invalidateQueries({ queryKey: ["mappings"] });
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            
+            toast({
+              title: "Category mapping updated",
+              description: "All transactions with this description will be updated to use the new category.",
             });
           }
         }
       } catch (error) {
-        console.error("Error creating mapping:", error);
+        console.error("Error managing mapping:", error);
       }
     }
 

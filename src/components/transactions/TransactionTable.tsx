@@ -1,5 +1,5 @@
 import { Table, TableBody } from "@/components/ui/table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TransactionDialog } from "./TransactionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,29 @@ export const TransactionTable = ({
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Subscribe to real-time updates for mappings
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mappings'
+        },
+        () => {
+          // Refresh transactions data when mappings change
+          queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const filteredTransactions = selectedTags.length > 0
     ? transactions.filter(transaction => 
