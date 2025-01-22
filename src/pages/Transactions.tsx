@@ -154,6 +154,7 @@ const Transactions = () => {
             sortOrder={sortOrder}
             toggleSort={toggleSort}
             formatCurrency={formatCurrency}
+            selectedTags={selectedTags}
           />
         </CardContent>
       </Card>

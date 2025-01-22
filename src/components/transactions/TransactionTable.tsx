@@ -18,6 +18,7 @@ interface TransactionTableProps {
   sortOrder: SortOrder;
   toggleSort: (field: SortField) => void;
   formatCurrency: (amount: number) => string;
+  selectedTags?: string[];
 }
 
 export const TransactionTable = ({
@@ -26,10 +27,17 @@ export const TransactionTable = ({
   sortOrder,
   toggleSort,
   formatCurrency,
+  selectedTags = [],
 }: TransactionTableProps) => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const filteredTransactions = selectedTags.length > 0
+    ? transactions.filter(transaction => 
+        selectedTags.every(tag => transaction.tags?.includes(tag))
+      )
+    : transactions;
 
   const handleEditTransaction = async (values: TransactionFormValues) => {
     if (!editingTransaction) return;
@@ -80,7 +88,7 @@ export const TransactionTable = ({
       <Table>
         <TransactionTableHeader toggleSort={toggleSort} />
         <TableBody>
-          {transactions.map((transaction) => (
+          {filteredTransactions.map((transaction) => (
             <TransactionTableRow
               key={transaction.id}
               transaction={transaction}

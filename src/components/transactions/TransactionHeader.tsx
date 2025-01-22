@@ -5,13 +5,15 @@ import { TransactionDialog } from "./TransactionDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { TransactionFormValues } from "./TransactionForm";
+import { normalizeTags } from "@/utils/tagUtils";
 
 export const TransactionHeader = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const handleAddTransaction = async (values: any) => {
+  const handleAddTransaction = async (values: TransactionFormValues) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -19,13 +21,17 @@ export const TransactionHeader = () => {
         throw new Error("User not authenticated");
       }
 
+      const normalizedTags = normalizeTags(values.tags.join(','));
+
       const { error } = await supabase
         .from("transactions")
         .insert([{
-          ...values,
-          user_id: user.id,
+          date: values.date,
+          description: values.description,
+          amount: values.amount,
           category_id: values.category_id === "null" ? null : values.category_id,
-          tags: values.tags || []
+          tags: normalizedTags,
+          user_id: user.id,
         }]);
 
       if (error) throw error;
@@ -37,11 +43,11 @@ export const TransactionHeader = () => {
 
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       setIsAddDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding transaction:", error);
       toast({
         title: "Error",
-        description: "Failed to add transaction",
+        description: error.message || "Failed to add transaction",
         variant: "destructive",
       });
     }
