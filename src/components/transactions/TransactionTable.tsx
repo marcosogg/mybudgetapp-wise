@@ -14,6 +14,7 @@ interface Transaction {
   description: string;
   amount: number;
   category_id: string | null;
+  tags: string[] | null;
   category?: {
     name: string;
   } | null;
@@ -56,6 +57,7 @@ export const TransactionTable = ({
         description: values.description,
         amount: values.amount,
         category_id: values.category_id === "null" ? null : values.category_id,
+        tags: values.tags,
         user_id: user.id,
       };
 
