@@ -80,14 +80,13 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
             .maybeSingle();
 
           if (!existingMapping) {
-            // Create new mapping
+            // Only create mapping if category_id is not null
             await supabase.from("mappings").insert({
               description_keyword: values.description,
               category_id: values.category_id,
               user_id: user.id,
             });
             
-            // Invalidate both mappings and transactions queries to refresh the data
             queryClient.invalidateQueries({ queryKey: ["mappings"] });
             queryClient.invalidateQueries({ queryKey: ["transactions"] });
             
@@ -102,7 +101,6 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
               .update({ category_id: values.category_id })
               .eq("id", existingMapping.id);
             
-            // Invalidate both mappings and transactions queries to refresh the data
             queryClient.invalidateQueries({ queryKey: ["mappings"] });
             queryClient.invalidateQueries({ queryKey: ["transactions"] });
             
