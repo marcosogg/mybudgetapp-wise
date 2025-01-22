@@ -35,6 +35,16 @@ const Categories = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get current user
+  const { data: user } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return user;
+    },
+  });
+
   // Fetch categories
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["categories"],
@@ -46,14 +56,17 @@ const Categories = () => {
       if (error) throw error;
       return data;
     },
+    enabled: !!user, // Only fetch categories when we have a user
   });
 
   // Create category mutation
   const createCategory = useMutation({
     mutationFn: async (name: string) => {
+      if (!user) throw new Error("User not authenticated");
+      
       const { data, error } = await supabase
         .from("categories")
-        .insert([{ name }])
+        .insert([{ name, user_id: user.id }])
         .select()
         .single();
 
@@ -81,10 +94,13 @@ const Categories = () => {
   // Update category mutation
   const updateCategory = useMutation({
     mutationFn: async ({ id, name }: Category) => {
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
         .from("categories")
         .update({ name })
         .eq("id", id)
+        .eq("user_id", user.id)
         .select()
         .single();
 
