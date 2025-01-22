@@ -85,11 +85,14 @@ const TransactionImport = () => {
           amount: row[AMOUNT_INDEX],
         }));
 
-        // Filter out rows with invalid dates for preview
-        const validData = parsedData.filter(row => row.date);
+        // Filter out rows with invalid dates and positive amounts
+        const validData = parsedData.filter(row => {
+          const amount = parseFloat(row.amount);
+          return row.date && amount < 0;
+        });
         
         if (validData.length === 0) {
-          setError("No valid transactions found in the file. Please check the date format.");
+          setError("No valid transactions found in the file. Please check the date format and ensure there are negative amounts.");
           return;
         }
 
@@ -125,13 +128,14 @@ const TransactionImport = () => {
             const parsedTransactions = rows
               .map(row => {
                 const date = formatDate(row[DATE_INDEX]);
-                if (!date) return null;
+                const amount = parseFloat(row[AMOUNT_INDEX]);
+                if (!date || amount >= 0) return null;
                 
                 return {
                   user_id: user.id,
                   date,
                   description: row[DESCRIPTION_INDEX],
-                  amount: parseFloat(row[AMOUNT_INDEX]),
+                  amount,
                   tags: [],
                   category_id: null,
                 };
