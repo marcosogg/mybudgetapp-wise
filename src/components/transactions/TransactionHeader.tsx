@@ -1,7 +1,41 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { TransactionDialog } from "./TransactionDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const TransactionHeader = () => {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleAddTransaction = async (values: any) => {
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .insert([values]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Transaction added successfully",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add transaction",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex justify-between items-center">
       <div>
@@ -10,10 +44,17 @@ export const TransactionHeader = () => {
           Manage your financial transactions
         </p>
       </div>
-      <Button>
+      <Button onClick={() => setIsAddDialogOpen(true)}>
         <Plus className="mr-2 h-4 w-4" />
         Add Transaction
       </Button>
+
+      <TransactionDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={handleAddTransaction}
+        mode="add"
+      />
     </div>
   );
 };
