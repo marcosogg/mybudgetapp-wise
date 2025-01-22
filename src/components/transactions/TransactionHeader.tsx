@@ -13,9 +13,19 @@ export const TransactionHeader = () => {
 
   const handleAddTransaction = async (values: any) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const { error } = await supabase
         .from("transactions")
-        .insert([values]);
+        .insert([{
+          ...values,
+          user_id: user.id,
+          category_id: values.category_id === "null" ? null : values.category_id
+        }]);
 
       if (error) throw error;
 
