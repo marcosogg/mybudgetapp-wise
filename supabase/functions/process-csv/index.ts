@@ -49,25 +49,43 @@ serve(async (req) => {
     // Process transactions in batches of 100
     const batchSize = 100
     const results = []
+    const skippedDuplicates = []
     
     for (let i = 0; i < validTransactions.length; i += batchSize) {
       const batch = validTransactions.slice(i, i + batchSize)
-      console.log(`Inserting batch ${i/batchSize + 1} of ${Math.ceil(validTransactions.length/batchSize)}`)
+      console.log(`Processing batch ${i/batchSize + 1} of ${Math.ceil(validTransactions.length/batchSize)}`)
       
-      const { data, error } = await supabase
-        .from('transactions')
-        .insert(batch)
-        .select()
+      // For each transaction in the batch, check if it already exists
+      for (const transaction of batch) {
+        const { data: existingTransaction } = await supabase
+          .from('transactions')
+          .select()
+          .eq('user_id', userId)
+          .eq('date', transaction.date)
+          .eq('description', transaction.description)
+          .eq('amount', transaction.amount)
+          .maybeSingle()
 
-      if (error) {
-        console.error('Error inserting batch:', error)
-        return new Response(
-          JSON.stringify({ error: 'Failed to insert transactions', details: error }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        )
+        if (!existingTransaction) {
+          // Only insert if the transaction doesn't exist
+          const { data, error } = await supabase
+            .from('transactions')
+            .insert([transaction])
+            .select()
+
+          if (error) {
+            console.error('Error inserting transaction:', error)
+            throw error
+          }
+
+          if (data) {
+            results.push(...data)
+          }
+        } else {
+          console.log('Skipping duplicate transaction:', transaction)
+          skippedDuplicates.push(transaction)
+        }
       }
-
-      results.push(...(data || []))
     }
 
     return new Response(
@@ -76,7 +94,8 @@ serve(async (req) => {
         transactionsCreated: results.length,
         totalTransactions: transactions.length,
         validTransactions: validTransactions.length,
-        skippedTransactions: transactions.length - validTransactions.length
+        skippedTransactions: transactions.length - validTransactions.length,
+        skippedDuplicates: skippedDuplicates.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
@@ -84,7 +103,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error)
     return new Response(
-      JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
+      JSON.stringify({ error: 'An unexpected error occurred', details: error }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
