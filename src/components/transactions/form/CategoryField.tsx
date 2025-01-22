@@ -7,9 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface CategoryFieldProps {
   form: UseFormReturn<TransactionFormValues>;
+  mode?: "add" | "edit";
 }
 
-export const CategoryField = ({ form }: CategoryFieldProps) => {
+export const CategoryField = ({ form, mode = "add" }: CategoryFieldProps) => {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -39,7 +40,9 @@ export const CategoryField = ({ form }: CategoryFieldProps) => {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="null">No category</SelectItem>
+              {mode === "add" && (
+                <SelectItem value="null">No category</SelectItem>
+              )}
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}

@@ -47,7 +47,7 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
         <DateField form={form} />
         <DescriptionField form={form} />
         <AmountField form={form} />
-        <CategoryField form={form} />
+        <CategoryField form={form} mode={initialData ? "edit" : "add"} />
         <TagsField form={form} />
 
         <div className="flex justify-end space-x-2">
