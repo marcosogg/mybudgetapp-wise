@@ -1,6 +1,11 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSidebar } from "./context";
 import { SidebarMenuButtonProps } from "./types";
 
@@ -81,6 +86,3 @@ export const SidebarMenuButton = React.forwardRef<
   }
 );
 SidebarMenuButton.displayName = "SidebarMenuButton";
-
-// Additional menu-related components follow the same pattern
-// Each with proper TypeScript types and displayNames

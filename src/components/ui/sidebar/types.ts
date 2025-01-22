@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import type { TooltipContent } from "@/components/ui/tooltip";
 
 export type SidebarContext = {
   state: "expanded" | "collapsed";

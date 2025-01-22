@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SidebarContext, SidebarProviderProps } from "./types";
+import { cn } from "@/lib/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import type { SidebarContext, SidebarProviderProps } from "./types";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
