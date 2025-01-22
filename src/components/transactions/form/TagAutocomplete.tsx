@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Tag } from "lucide-react";
 import { getTagStyle } from "@/utils/tagUtils";
 
 interface TagAutocompleteProps {
@@ -15,15 +14,19 @@ interface TagAutocompleteProps {
 }
 
 export const TagAutocomplete = ({
-  availableTags,
-  selectedTags,
+  availableTags = [], // Provide default empty array
+  selectedTags = [], // Provide default empty array
   onTagSelect,
 }: TagAutocompleteProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const filteredTags = availableTags
-    .filter((tag) => !selectedTags.includes(tag))
+  // Ensure we have valid arrays
+  const safeAvailableTags = Array.isArray(availableTags) ? availableTags : [];
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+
+  const filteredTags = safeAvailableTags
+    .filter((tag) => !safeSelectedTags.includes(tag))
     .filter((tag) =>
       tag.toLowerCase().includes(search.toLowerCase())
     );
@@ -38,8 +41,8 @@ export const TagAutocomplete = ({
           className="w-full justify-between"
         >
           <span className="truncate">
-            {selectedTags.length > 0
-              ? `${selectedTags.length} tag${selectedTags.length > 1 ? "s" : ""} selected`
+            {safeSelectedTags.length > 0
+              ? `${safeSelectedTags.length} tag${safeSelectedTags.length > 1 ? "s" : ""} selected`
               : "Select tags..."}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -80,7 +83,7 @@ export const TagAutocomplete = ({
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      selectedTags.includes(tag) ? "opacity-100" : "opacity-0"
+                      safeSelectedTags.includes(tag) ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
