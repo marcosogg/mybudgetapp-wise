@@ -1,15 +1,37 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, FileText, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import Papa from 'papaparse';
+
+interface CSVRow {
+  date: string;
+  description: string;
+  amount: string;
+  [key: string]: string;
+}
 
 const TransactionImport = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [previewData, setPreviewData] = useState<CSVRow[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
+    setError(null);
     
     if (!selectedFile) {
       return;
@@ -25,6 +47,80 @@ const TransactionImport = () => {
     }
 
     setFile(selectedFile);
+    
+    // Parse CSV file
+    Papa.parse(selectedFile, {
+      complete: (results) => {
+        if (results.data.length > 0) {
+          const headers = results.data[0] as string[];
+          const rows = results.data.slice(1) as string[][];
+          
+          // Validate required columns
+          const requiredColumns = ['date', 'description', 'amount'];
+          const headerLower = headers.map(h => h.toLowerCase());
+          const missingColumns = requiredColumns.filter(
+            col => !headerLower.includes(col)
+          );
+
+          if (missingColumns.length > 0) {
+            setError(`Missing required columns: ${missingColumns.join(', ')}`);
+            return;
+          }
+
+          // Convert rows to objects with headers as keys
+          const parsedData = rows.map(row => {
+            const rowData: { [key: string]: string } = {};
+            headers.forEach((header, index) => {
+              rowData[header.toLowerCase()] = row[index] || '';
+            });
+            return rowData as CSVRow;
+          });
+
+          setHeaders(headers);
+          setPreviewData(parsedData.slice(0, 5)); // Show first 5 rows as preview
+        }
+      },
+      error: (error) => {
+        toast({
+          title: "Error parsing CSV",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const uploadFile = async () => {
+    if (!file) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Upload to temp storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('temp_csv_files')
+        .upload(`${user.id}/${file.name}`, file);
+
+      if (uploadError) throw uploadError;
+
+      toast({
+        title: "Success",
+        description: "File uploaded successfully. Processing...",
+      });
+
+      // TODO: Add processing logic here
+
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload file",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -38,7 +134,10 @@ const TransactionImport = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Select File</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Select CSV File
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -65,9 +164,54 @@ const TransactionImport = () => {
                 />
               </label>
             </div>
-            {file && (
-              <div className="text-sm text-muted-foreground">
-                Selected file: {file.name}
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {file && !error && (
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Selected file: {file.name}
+                </div>
+
+                {previewData.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Preview (First 5 rows)</h3>
+                    <div className="border rounded-lg">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            {headers.map((header) => (
+                              <TableHead key={header}>{header}</TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {previewData.map((row, index) => (
+                            <TableRow key={index}>
+                              {headers.map((header) => (
+                                <TableCell key={header}>
+                                  {row[header.toLowerCase()]}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button onClick={uploadFile}>
+                        Process Import
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
