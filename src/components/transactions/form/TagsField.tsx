@@ -3,9 +3,9 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { TransactionFormValues } from "../TransactionForm";
 import { Badge } from "@/components/ui/badge";
-import { Tag, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { normalizeTags } from "@/utils/tagUtils";
+import { normalizeTags, getTagStyle } from "@/utils/tagUtils";
 
 interface TagsFieldProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -45,25 +45,29 @@ export const TagsField = ({ form }: TagsFieldProps) => {
           <FormLabel>Tags</FormLabel>
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2 min-h-[2rem]">
-              {field.value.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  <Tag className="h-3 w-3" />
-                  {tag}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeTag(tag)}
+              {field.value.map((tag) => {
+                const style = getTagStyle(tag);
+                const Icon = style.icon;
+                return (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className={`flex items-center gap-1 ${style.bg} ${style.text}`}
                   >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
+                    <Icon className="h-3 w-3" />
+                    {tag}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 hover:bg-transparent"
+                      onClick={() => removeTag(tag)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
             </div>
             <FormControl>
               <Input

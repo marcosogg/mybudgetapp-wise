@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { CategoryBadge } from "./CategoryBadge";
-import { Pencil, Tag } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Transaction } from "@/types/transaction";
+import { getTagStyle } from "@/utils/tagUtils";
 
 interface TransactionTableRowProps {
   transaction: Transaction;
@@ -16,6 +17,8 @@ export const TransactionTableRow = ({
   formatCurrency,
   onEdit,
 }: TransactionTableRowProps) => {
+  console.log("Transaction tags:", transaction.tags); // Debug log
+
   return (
     <TableRow key={transaction.id}>
       <TableCell>{transaction.date}</TableCell>
@@ -26,12 +29,20 @@ export const TransactionTableRow = ({
       <TableCell>{formatCurrency(transaction.amount)}</TableCell>
       <TableCell>
         <div className="flex flex-wrap gap-1">
-          {transaction.tags?.map((tag) => (
-            <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-              <Tag className="h-3 w-3" />
-              {tag}
-            </Badge>
-          ))}
+          {transaction.tags?.map((tag) => {
+            const style = getTagStyle(tag);
+            const Icon = style.icon;
+            return (
+              <Badge
+                key={tag}
+                variant="secondary"
+                className={`flex items-center gap-1 ${style.bg} ${style.text}`}
+              >
+                <Icon className="h-3 w-3" />
+                {tag}
+              </Badge>
+            );
+          })}
         </div>
       </TableCell>
       <TableCell className="text-right">
