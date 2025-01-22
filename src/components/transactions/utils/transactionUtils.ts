@@ -8,7 +8,7 @@ export const filterTransactions = (
   selectedTags: string[]
 ) => {
   let filtered = transactions.filter((transaction) =>
-    transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
+    transaction.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false
   );
 
   if (selectedCategory !== "all") {
@@ -47,7 +47,10 @@ export const sortTransactions = (
       const categoryB = b.category?.name ?? "";
       return multiplier * categoryA.localeCompare(categoryB);
     }
-    return multiplier * a[sortField].localeCompare(b[sortField]);
+    // Add null check for description field
+    const descA = a[sortField]?.toString() ?? "";
+    const descB = b[sortField]?.toString() ?? "";
+    return multiplier * descA.localeCompare(descB);
   });
 };
 
