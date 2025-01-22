@@ -234,12 +234,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      insert_default_categories: {
-        Args: {
-          user_uuid: string
-        }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
