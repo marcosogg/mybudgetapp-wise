@@ -4,7 +4,7 @@ import { TransactionDialog } from "./TransactionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { TransactionFormValues } from "./TransactionForm";
+import { TransactionFormValues } from "./types/formTypes";
 import { TransactionTableHeader } from "./TransactionTableHeader";
 import { TransactionTableRow } from "./TransactionTableRow";
 import { Transaction } from "@/types/transaction";

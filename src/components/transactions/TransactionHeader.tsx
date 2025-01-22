@@ -5,7 +5,7 @@ import { TransactionDialog } from "./TransactionDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { TransactionFormValues } from "./TransactionForm";
+import { TransactionFormValues } from "./types/formTypes";
 import { normalizeTags } from "@/utils/tagUtils";
 
 export const TransactionHeader = () => {

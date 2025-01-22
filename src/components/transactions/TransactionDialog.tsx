@@ -4,7 +4,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TransactionForm, TransactionFormValues } from "./TransactionForm";
+import { TransactionForm } from "./TransactionForm";
+import { TransactionFormValues } from "./types/formTypes";
 
 interface TransactionDialogProps {
   open: boolean;
