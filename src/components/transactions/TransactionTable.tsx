@@ -51,30 +51,33 @@ export const TransactionTable = ({
         throw new Error("User not authenticated");
       }
 
+      const updateData = {
+        ...values,
+        user_id: user.id,
+        category_id: values.category_id === "null" ? null : values.category_id
+      };
+
       const { error } = await supabase
         .from("transactions")
-        .update({
-          ...values,
-          user_id: user.id,
-          category_id: values.category_id === "null" ? null : values.category_id
-        })
+        .update(updateData)
         .eq("id", editingTransaction.id)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .single();
 
       if (error) throw error;
 
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      setEditingTransaction(null);
+      
       toast({
         title: "Success",
         description: "Transaction updated successfully",
       });
-
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      setEditingTransaction(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating transaction:", error);
       toast({
         title: "Error",
-        description: "Failed to update transaction",
+        description: error.message || "Failed to update transaction",
         variant: "destructive",
       });
     }
