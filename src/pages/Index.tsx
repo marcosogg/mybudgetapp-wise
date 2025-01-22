@@ -4,20 +4,35 @@ import { ArrowRight, DollarSign, FileUp, PieChart, Upload, Wallet } from "lucide
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TransactionStats } from "@/components/transactions/TransactionStats";
 
 const Index = () => {
   const navigate = useNavigate();
 
-  // Fetch recent transaction count
-  const { data: transactionCount } = useQuery({
-    queryKey: ['transactionCount'],
+  // Fetch transaction statistics
+  const { data: stats } = useQuery({
+    queryKey: ['transactionStats'],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data: transactions } = await supabase
         .from('transactions')
-        .select('*', { count: 'exact', head: true });
-      return count || 0;
+        .select('amount');
+
+      if (!transactions) return { count: 0, income: 0, expenses: 0 };
+
+      return transactions.reduce((acc, transaction) => ({
+        count: acc.count + 1,
+        income: transaction.amount > 0 ? acc.income + transaction.amount : acc.income,
+        expenses: transaction.amount < 0 ? acc.expenses + Math.abs(transaction.amount) : acc.expenses,
+      }), { count: 0, income: 0, expenses: 0 });
     },
   });
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
 
   return (
     <div className="space-y-8">
@@ -28,6 +43,13 @@ const Index = () => {
         </p>
       </div>
 
+      <TransactionStats
+        transactionCount={stats?.count ?? 0}
+        totalIncome={stats?.income ?? 0}
+        totalExpenses={stats?.expenses ?? 0}
+        formatCurrency={formatCurrency}
+      />
+
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <Card className="p-6">
@@ -35,7 +57,7 @@ const Index = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Total Transactions</span>
-                <span className="text-2xl font-bold">{transactionCount}</span>
+                <span className="text-2xl font-bold">{stats?.count ?? 0}</span>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Button 
