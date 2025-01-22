@@ -30,13 +30,28 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Filter out transactions with invalid dates
+    const validTransactions = transactions.filter(transaction => {
+      const date = transaction.date?.trim();
+      return date && !isNaN(Date.parse(date));
+    });
+
+    if (validTransactions.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No valid transactions found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    console.log(`Found ${validTransactions.length} valid transactions out of ${transactions.length} total`)
+
     // Process transactions in batches of 100
     const batchSize = 100
     const results = []
     
-    for (let i = 0; i < transactions.length; i += batchSize) {
-      const batch = transactions.slice(i, i + batchSize)
-      console.log(`Inserting batch ${i/batchSize + 1} of ${Math.ceil(transactions.length/batchSize)}`)
+    for (let i = 0; i < validTransactions.length; i += batchSize) {
+      const batch = validTransactions.slice(i, i + batchSize)
+      console.log(`Inserting batch ${i/batchSize + 1} of ${Math.ceil(validTransactions.length/batchSize)}`)
       
       const { data, error } = await supabase
         .from('transactions')
@@ -57,7 +72,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         message: 'Transactions processed successfully',
-        transactionsCreated: results.length
+        transactionsCreated: results.length,
+        totalTransactions: transactions.length,
+        validTransactions: validTransactions.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )

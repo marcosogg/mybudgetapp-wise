@@ -21,6 +21,17 @@ const DATE_INDEX = 3; // Completed Date
 const DESCRIPTION_INDEX = 4;
 const AMOUNT_INDEX = 5;
 
+// Helper function to validate and format date
+const formatDate = (dateStr: string): string | null => {
+  if (!dateStr?.trim()) return null;
+  
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return null;
+  
+  // Format as YYYY-MM-DD
+  return date.toISOString().split('T')[0];
+};
+
 const TransactionImport = () => {
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<Array<{ date: string; description: string; amount: string; }>>([]);
@@ -69,13 +80,21 @@ const TransactionImport = () => {
 
         const rows = results.data.slice(1) as string[][];
         const parsedData = rows.map(row => ({
-          date: row[DATE_INDEX],
+          date: formatDate(row[DATE_INDEX]) || '',
           description: row[DESCRIPTION_INDEX],
           amount: row[AMOUNT_INDEX],
         }));
 
-        setPreviewData(parsedData.slice(0, 5));
-        setTotalRows(parsedData.length);
+        // Filter out rows with invalid dates for preview
+        const validData = parsedData.filter(row => row.date);
+        
+        if (validData.length === 0) {
+          setError("No valid transactions found in the file. Please check the date format.");
+          return;
+        }
+
+        setPreviewData(validData.slice(0, 5));
+        setTotalRows(validData.length);
       },
       error: (error) => {
         toast({
@@ -103,19 +122,31 @@ const TransactionImport = () => {
         Papa.parse(file, {
           complete: (results) => {
             const rows = results.data.slice(1) as string[][]; // Skip header row
-            const parsedTransactions = rows.map(row => ({
-              user_id: user.id,
-              date: row[DATE_INDEX],
-              description: row[DESCRIPTION_INDEX],
-              amount: parseFloat(row[AMOUNT_INDEX]),
-              tags: [],
-              category_id: null,
-            }));
+            const parsedTransactions = rows
+              .map(row => {
+                const date = formatDate(row[DATE_INDEX]);
+                if (!date) return null;
+                
+                return {
+                  user_id: user.id,
+                  date,
+                  description: row[DESCRIPTION_INDEX],
+                  amount: parseFloat(row[AMOUNT_INDEX]),
+                  tags: [],
+                  category_id: null,
+                };
+              })
+              .filter((t): t is NonNullable<typeof t> => t !== null);
+            
             resolve(parsedTransactions);
           },
           error: reject,
         });
       });
+
+      if (transactions.length === 0) {
+        throw new Error("No valid transactions found in the file");
+      }
 
       // Send transactions directly to edge function
       const { data, error } = await supabase.functions.invoke('process-csv', {
