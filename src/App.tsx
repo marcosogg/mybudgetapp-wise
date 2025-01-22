@@ -81,14 +81,6 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/mappings"
-            element={
-              <ProtectedRoute>
-                <div>Mappings Page</div>
-              </ProtectedRoute>
-            }
-          />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

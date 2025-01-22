@@ -1,4 +1,4 @@
-import { Home, PieChart, List, Bell, MapPin } from "lucide-react";
+import { Home, PieChart, List, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,6 @@ export const Sidebar = () => {
     { name: "Transactions", href: "/transactions", icon: List },
     { name: "Categories", href: "/categories", icon: PieChart },
     { name: "Reminders", href: "/reminders", icon: Bell },
-    { name: "Mappings", href: "/mappings", icon: MapPin },
   ];
 
   return (
