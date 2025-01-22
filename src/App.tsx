@@ -1,56 +1,99 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DashboardLayout } from "./components/layouts/DashboardLayout";
-import { AuthLayout } from "./components/layouts/AuthLayout";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
+import Transactions from "./pages/Transactions";
 import TransactionImport from "./pages/TransactionImport";
-import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/auth" element={
-            <AuthLayout>
-              <Auth />
-            </AuthLayout>
-          } />
-          <Route path="/" element={
-            <DashboardLayout>
-              <Transactions />
-            </DashboardLayout>
-          } />
-          <Route path="/transactions" element={
-            <DashboardLayout>
-              <Transactions />
-            </DashboardLayout>
-          } />
-          <Route path="/categories" element={
-            <DashboardLayout>
-              <Categories />
-            </DashboardLayout>
-          } />
-          <Route path="/import" element={
-            <DashboardLayout>
-              <TransactionImport />
-            </DashboardLayout>
-          } />
-          <Route path="/analytics" element={
-            <DashboardLayout>
-              <Analytics />
-            </DashboardLayout>
-          } />
-        </Routes>
-      </Router>
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [session, setSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(!!session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (session === null) {
+    return null; // Loading state
+  }
+
+  if (!session) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <DashboardLayout>{children}</DashboardLayout>;
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
       <Toaster />
-    </QueryClientProvider>
-  );
-}
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <Categories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <Transactions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions/import"
+            element={
+              <ProtectedRoute>
+                <TransactionImport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reminders"
+            element={
+              <ProtectedRoute>
+                <div>Reminders Page</div>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
