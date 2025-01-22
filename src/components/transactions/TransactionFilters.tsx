@@ -31,10 +31,10 @@ export const TransactionFilters = ({
   setSearchTerm,
   selectedCategory,
   setSelectedCategory,
-  categories,
-  selectedTags,
+  categories = [], // Provide default empty array
+  selectedTags = [], // Provide default empty array
   setSelectedTags,
-  availableTags,
+  availableTags = [], // Provide default empty array
 }: TransactionFiltersProps) => {
   const removeTag = (tag: string) => {
     setSelectedTags(selectedTags.filter((t) => t !== tag));
@@ -45,6 +45,11 @@ export const TransactionFilters = ({
       setSelectedTags([...selectedTags, tag]);
     }
   };
+
+  // Ensure we have valid arrays
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+  const safeAvailableTags = Array.isArray(availableTags) ? availableTags : [];
 
   return (
     <div className="space-y-4">
@@ -62,7 +67,7 @@ export const TransactionFilters = ({
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="uncategorized">Uncategorized</SelectItem>
-            {categories.map((category) => (
+            {safeCategories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
               </SelectItem>
@@ -74,7 +79,7 @@ export const TransactionFilters = ({
       <div className="space-y-2">
         <div className="text-sm font-medium">Filter by tags:</div>
         <div className="flex flex-wrap gap-2">
-          {selectedTags.map((tag) => (
+          {safeSelectedTags.map((tag) => (
             <Badge
               key={tag}
               variant="secondary"
@@ -95,8 +100,8 @@ export const TransactionFilters = ({
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          {availableTags
-            .filter((tag) => !selectedTags.includes(tag))
+          {safeAvailableTags
+            .filter((tag) => !safeSelectedTags.includes(tag))
             .map((tag) => (
               <Badge
                 key={tag}
