@@ -16,6 +16,7 @@ const Transactions = () => {
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery({
     queryKey: ["transactions"],
@@ -52,6 +53,14 @@ const Transactions = () => {
     },
   });
 
+  const availableTags = useMemo(() => {
+    const allTags = new Set<string>();
+    transactions.forEach((transaction) => {
+      transaction.tags?.forEach((tag) => allTags.add(tag));
+    });
+    return Array.from(allTags).sort();
+  }, [transactions]);
+
   const filteredAndSortedTransactions = useMemo(() => {
     let filtered = transactions.filter((transaction) =>
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,6 +71,12 @@ const Transactions = () => {
         selectedCategory === "uncategorized"
           ? !t.category_id
           : t.category_id === selectedCategory
+      );
+    }
+
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((transaction) =>
+        selectedTags.every((tag) => transaction.tags?.includes(tag))
       );
     }
 
@@ -81,7 +96,7 @@ const Transactions = () => {
       }
       return multiplier * a[sortField].localeCompare(b[sortField]);
     });
-  }, [transactions, searchTerm, sortField, sortOrder, selectedCategory]);
+  }, [transactions, searchTerm, sortField, sortOrder, selectedCategory, selectedTags]);
 
   const totalAmount = filteredAndSortedTransactions.reduce(
     (sum, transaction) => sum + transaction.amount,
@@ -127,6 +142,9 @@ const Transactions = () => {
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             categories={categories}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
+            availableTags={availableTags}
           />
         </CardHeader>
         <CardContent>

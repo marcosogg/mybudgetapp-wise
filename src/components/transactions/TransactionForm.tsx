@@ -19,6 +19,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeTags } from "@/utils/tagUtils";
+import { Badge } from "@/components/ui/badge";
+import { Tag, X } from "lucide-react";
 
 interface TransactionFormProps {
   initialData?: {
@@ -66,6 +68,30 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
   const handleSubmit = (values: TransactionFormValues) => {
     const normalizedTags = normalizeTags(values.tags.join(','));
     onSubmit({ ...values, tags: normalizedTags });
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    const currentTags = form.getValues('tags');
+    form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const input = e.currentTarget;
+      const value = input.value.trim();
+      
+      if (value) {
+        const currentTags = form.getValues('tags');
+        const normalizedTag = normalizeTags(value)[0];
+        
+        if (normalizedTag && !currentTags.includes(normalizedTag)) {
+          form.setValue('tags', [...currentTags, normalizedTag]);
+        }
+        
+        input.value = '';
+      }
+    }
   };
 
   return (
@@ -152,16 +178,38 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tags (comma-separated)</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  value={field.value?.join(', ') || ''}
-                  onChange={(e) => field.onChange(normalizeTags(e.target.value))}
-                  placeholder="e.g. groceries, household, essential"
-                />
-              </FormControl>
-              <FormMessage />
+              <FormLabel>Tags</FormLabel>
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                  {field.value.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      <Tag className="h-3 w-3" />
+                      {tag}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => removeTag(tag)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <FormControl>
+                  <Input
+                    placeholder="Type a tag and press Enter or comma"
+                    onKeyDown={handleTagInput}
+                    className="mt-2"
+                  />
+                </FormControl>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />

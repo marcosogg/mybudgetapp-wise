@@ -6,6 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tag, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Category {
   id: string;
@@ -18,6 +21,9 @@ interface TransactionFiltersProps {
   selectedCategory: string;
   setSelectedCategory: (value: string) => void;
   categories: Category[];
+  selectedTags: string[];
+  setSelectedTags: (tags: string[]) => void;
+  availableTags: string[];
 }
 
 export const TransactionFilters = ({
@@ -26,29 +32,84 @@ export const TransactionFilters = ({
   selectedCategory,
   setSelectedCategory,
   categories,
+  selectedTags,
+  setSelectedTags,
+  availableTags,
 }: TransactionFiltersProps) => {
+  const removeTag = (tag: string) => {
+    setSelectedTags(selectedTags.filter((t) => t !== tag));
+  };
+
+  const addTag = (tag: string) => {
+    if (!selectedTags.includes(tag)) {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center mt-4">
-      <Input
-        placeholder="Search transactions..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="max-w-sm"
-      />
-      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Filter by category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Categories</SelectItem>
-          <SelectItem value="uncategorized">Uncategorized</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>
-              {category.name}
-            </SelectItem>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <Input
+          placeholder="Search transactions..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="uncategorized">Uncategorized</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-sm font-medium">Filter by tags:</div>
+        <div className="flex flex-wrap gap-2">
+          {selectedTags.map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="flex items-center gap-1"
+            >
+              <Tag className="h-3 w-3" />
+              {tag}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-transparent"
+                onClick={() => removeTag(tag)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
           ))}
-        </SelectContent>
-      </Select>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {availableTags
+            .filter((tag) => !selectedTags.includes(tag))
+            .map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="cursor-pointer hover:bg-secondary"
+                onClick={() => addTag(tag)}
+              >
+                <Tag className="h-3 w-3 mr-1" />
+                {tag}
+              </Badge>
+            ))}
+        </div>
+      </div>
     </div>
   );
 };
