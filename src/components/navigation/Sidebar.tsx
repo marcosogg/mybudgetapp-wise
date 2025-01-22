@@ -31,7 +31,7 @@ const links = [
   },
 ];
 
-export default function Sidebar() {
+const Sidebar = () => {
   return (
     <div className="pb-12 min-h-screen">
       <div className="space-y-4 py-4">
@@ -59,4 +59,6 @@ export default function Sidebar() {
       </div>
     </div>
   );
-}
+};
+
+export default Sidebar;

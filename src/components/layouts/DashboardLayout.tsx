@@ -3,7 +3,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { Sidebar } from "../navigation/Sidebar";
+import Sidebar from "../navigation/Sidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
