@@ -17,6 +17,12 @@ interface CSVRow {
   [key: string]: string;
 }
 
+const HEADER_MAPPING = {
+  'completed date': 'date',
+  'description': 'description',
+  'amount': 'amount'
+};
+
 const TransactionImport = () => {
   const [file, setFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<CSVRow[]>([]);
@@ -54,29 +60,37 @@ const TransactionImport = () => {
     Papa.parse(selectedFile, {
       complete: (results) => {
         if (results.data.length > 0) {
-          const headers = results.data[0] as string[];
-          const rows = results.data.slice(1) as string[][];
-          
-          const requiredColumns = ['date', 'description', 'amount'];
-          const headerLower = headers.map(h => h.toLowerCase());
-          const missingColumns = requiredColumns.filter(
-            col => !headerLower.includes(col)
+          const originalHeaders = results.data[0] as string[];
+          const headerMap = new Map(
+            originalHeaders.map((header, index) => [header.toLowerCase(), { original: header, index }])
+          );
+
+          // Check for required columns using the mapping
+          const missingColumns = Object.entries(HEADER_MAPPING).filter(
+            ([csvHeader]) => !headerMap.has(csvHeader)
           );
 
           if (missingColumns.length > 0) {
-            setError(`Missing required columns: ${missingColumns.join(', ')}`);
+            setError(`Missing required columns: ${missingColumns.map(([, mapped]) => mapped).join(', ')}`);
             return;
           }
 
+          const rows = results.data.slice(1) as string[][];
           const parsedData = rows.map(row => {
             const rowData: { [key: string]: string } = {};
-            headers.forEach((header, index) => {
-              rowData[header.toLowerCase()] = row[index] || '';
+            
+            // Map the columns according to our mapping
+            Object.entries(HEADER_MAPPING).forEach(([csvHeader, mappedHeader]) => {
+              const headerInfo = headerMap.get(csvHeader);
+              if (headerInfo) {
+                rowData[mappedHeader] = row[headerInfo.index] || '';
+              }
             });
+
             return rowData as CSVRow;
           });
 
-          setHeaders(headers);
+          setHeaders(Object.values(HEADER_MAPPING));
           setPreviewData(parsedData.slice(0, 5));
           setTotalRows(parsedData.length);
         }
