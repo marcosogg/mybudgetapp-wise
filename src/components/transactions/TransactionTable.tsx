@@ -1,20 +1,12 @@
-import { Button } from "@/components/ui/button";
-import { CategoryBadge } from "@/components/transactions/CategoryBadge";
-import { ArrowUpDown, Pencil } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody } from "@/components/ui/table";
 import { useState } from "react";
 import { TransactionDialog } from "./TransactionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionFormValues } from "./TransactionForm";
+import { TransactionTableHeader } from "./TransactionTableHeader";
+import { TransactionTableRow } from "./TransactionTableRow";
 
 interface Transaction {
   id: string;
@@ -80,70 +72,15 @@ export const TransactionTable = ({
   return (
     <>
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => toggleSort("date")}
-                className="flex items-center gap-2"
-              >
-                Date
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => toggleSort("description")}
-                className="flex items-center gap-2"
-              >
-                Description
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => toggleSort("category")}
-                className="flex items-center gap-2"
-              >
-                Category
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => toggleSort("amount")}
-                className="flex items-center gap-2"
-              >
-                Amount
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+        <TransactionTableHeader toggleSort={toggleSort} />
         <TableBody>
           {transactions.map((transaction) => (
-            <TableRow key={transaction.id}>
-              <TableCell>{transaction.date}</TableCell>
-              <TableCell>{transaction.description}</TableCell>
-              <TableCell>
-                <CategoryBadge categoryName={transaction.category?.name ?? null} />
-              </TableCell>
-              <TableCell>{formatCurrency(transaction.amount)}</TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditingTransaction(transaction)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
+            <TransactionTableRow
+              key={transaction.id}
+              transaction={transaction}
+              formatCurrency={formatCurrency}
+              onEdit={setEditingTransaction}
+            />
           ))}
         </TableBody>
       </Table>
