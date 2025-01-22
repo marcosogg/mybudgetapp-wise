@@ -117,7 +117,7 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
               <FormLabel>Category</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={field.value || undefined}
+                defaultValue={field.value || "null"}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -125,7 +125,7 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No category</SelectItem>
+                  <SelectItem value="null">No category</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
