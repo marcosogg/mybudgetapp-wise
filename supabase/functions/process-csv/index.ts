@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { parse } from 'https://deno.land/std@0.181.0/encoding/csv.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,16 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const { filePath, userId } = await req.json()
+    const { transactions, userId } = await req.json()
 
-    if (!filePath || !userId) {
+    if (!transactions || !userId) {
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
-    console.log('Processing file:', filePath, 'for user:', userId)
+    console.log(`Processing ${transactions.length} transactions for user ${userId}`)
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -31,55 +30,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Download the file from storage
-    const { data: fileData, error: downloadError } = await supabase
-      .storage
-      .from('temp_csv_files')
-      .download(filePath)
-
-    if (downloadError) {
-      console.error('Error downloading file:', downloadError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to download file' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
-    }
-
-    // Parse CSV content
-    const csvText = await fileData.text()
-    const [headers, ...rows] = parse(csvText, { skipFirstRow: false })
-
-    // Define expected column indices
-    const DATE_INDEX = 3; // Completed Date
-    const DESCRIPTION_INDEX = 4;
-    const AMOUNT_INDEX = 5;
-
-    // Validate headers
-    const expectedHeaders = [
-      'Type', 'Product', 'Started Date', 'Completed Date', 
-      'Description', 'Amount', 'Fee', 'Currency', 'State', 'Balance'
-    ];
-
-    if (!expectedHeaders.every((header, index) => headers[index] === header)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid CSV format. Please ensure the file matches the expected format.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
-    }
-
-    // Process rows and insert into transactions table
-    const transactions = rows.map((row: string[]) => ({
-      user_id: userId,  // Explicitly set the user_id for each transaction
-      date: row[DATE_INDEX],
-      description: row[DESCRIPTION_INDEX],
-      amount: parseFloat(row[AMOUNT_INDEX]),
-      tags: [],
-      category_id: null, // Set to null initially
-    }))
-
-    console.log(`Preparing to insert ${transactions.length} transactions for user ${userId}`)
-
-    // Insert transactions in batches of 100
+    // Process transactions in batches of 100
     const batchSize = 100
     const results = []
     
@@ -103,19 +54,9 @@ serve(async (req) => {
       results.push(...(data || []))
     }
 
-    // Clean up: Delete the temporary CSV file
-    const { error: deleteError } = await supabase
-      .storage
-      .from('temp_csv_files')
-      .remove([filePath])
-
-    if (deleteError) {
-      console.error('Error deleting temporary file:', deleteError)
-    }
-
     return new Response(
       JSON.stringify({
-        message: 'CSV processed successfully',
+        message: 'Transactions processed successfully',
         transactionsCreated: results.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }

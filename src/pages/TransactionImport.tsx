@@ -98,15 +98,28 @@ const TransactionImport = () => {
         throw new Error("User not authenticated");
       }
 
-      const filePath = `${user.id}/${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('temp_csv_files')
-        .upload(filePath, file, { upsert: true });
+      // Parse the entire file
+      const transactions: any[] = await new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          complete: (results) => {
+            const rows = results.data.slice(1) as string[][]; // Skip header row
+            const parsedTransactions = rows.map(row => ({
+              user_id: user.id,
+              date: row[DATE_INDEX],
+              description: row[DESCRIPTION_INDEX],
+              amount: parseFloat(row[AMOUNT_INDEX]),
+              tags: [],
+              category_id: null,
+            }));
+            resolve(parsedTransactions);
+          },
+          error: reject,
+        });
+      });
 
-      if (uploadError) throw uploadError;
-
+      // Send transactions directly to edge function
       const { data, error } = await supabase.functions.invoke('process-csv', {
-        body: { filePath, userId: user.id }
+        body: { transactions, userId: user.id }
       });
 
       if (error) throw error;
@@ -136,7 +149,7 @@ const TransactionImport = () => {
       }, 1000);
 
     } catch (error: any) {
-      console.error("Upload error:", error);
+      console.error("Processing error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to process file",
