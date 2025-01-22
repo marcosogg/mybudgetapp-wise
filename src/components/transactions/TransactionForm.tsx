@@ -38,7 +38,9 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
       console.error("Error managing mapping:", error);
     }
 
-    onSubmit({ ...values, tags: normalizedTags });
+    // Ensure amount is negative
+    const amount = values.amount > 0 ? -values.amount : values.amount;
+    onSubmit({ ...values, amount, tags: normalizedTags });
   };
 
   return (
