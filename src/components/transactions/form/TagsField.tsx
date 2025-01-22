@@ -6,12 +6,39 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { normalizeTags, getTagStyle } from "@/utils/tagUtils";
+import { TagAutocomplete } from "./TagAutocomplete";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TagsFieldProps {
   form: UseFormReturn<TransactionFormValues>;
 }
 
 export const TagsField = ({ form }: TagsFieldProps) => {
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("tags")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const availableTags = Array.from(
+    new Set(
+      transactions
+        .flatMap((t) => t.tags || [])
+        .filter(Boolean)
+    )
+  ).sort();
+
   const removeTag = (tagToRemove: string) => {
     const currentTags = form.getValues('tags');
     form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
@@ -33,6 +60,13 @@ export const TagsField = ({ form }: TagsFieldProps) => {
         
         input.value = '';
       }
+    }
+  };
+
+  const handleTagSelect = (tag: string) => {
+    const currentTags = form.getValues('tags');
+    if (!currentTags.includes(tag)) {
+      form.setValue('tags', [...currentTags, tag]);
     }
   };
 
@@ -69,13 +103,19 @@ export const TagsField = ({ form }: TagsFieldProps) => {
                 );
               })}
             </div>
-            <FormControl>
-              <Input
-                placeholder="Type a tag and press Enter or comma"
-                onKeyDown={handleTagInput}
-                className="mt-2"
+            <div className="space-y-2">
+              <TagAutocomplete
+                availableTags={availableTags}
+                selectedTags={field.value}
+                onTagSelect={handleTagSelect}
               />
-            </FormControl>
+              <FormControl>
+                <Input
+                  placeholder="Or type a new tag and press Enter"
+                  onKeyDown={handleTagInput}
+                />
+              </FormControl>
+            </div>
             <FormMessage />
           </div>
         </FormItem>
