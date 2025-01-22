@@ -61,6 +61,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--background))",
+          foreground: "hsl(var(--foreground))",
+          border: "hsl(var(--border))",
+          accent: "hsl(var(--muted))",
+          "accent-foreground": "hsl(var(--muted-foreground))",
+          ring: "hsl(var(--ring))",
+        },
       },
       fontFamily: {
         bricolage: ["Bricolage Grotesque", "sans-serif"],
