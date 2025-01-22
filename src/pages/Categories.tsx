@@ -19,15 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-// Mock data
-const mockCategories = [
-  { id: "1", name: "Groceries" },
-  { id: "2", name: "Transportation" },
-  { id: "3", name: "Entertainment" },
-  { id: "4", name: "Utilities" },
-  { id: "5", name: "Dining Out" },
-];
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Category = {
   id: string;
@@ -35,29 +29,94 @@ type Category = {
 };
 
 const Categories = () => {
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch categories
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Create category mutation
+  const createCategory = useMutation({
+    mutationFn: async (name: string) => {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert([{ name }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Success",
+        description: "Category created successfully",
+      });
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create category",
+        variant: "destructive",
+      });
+      console.error("Error creating category:", error);
+    },
+  });
+
+  // Update category mutation
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, name }: Category) => {
+      const { data, error } = await supabase
+        .from("categories")
+        .update({ name })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Success",
+        description: "Category updated successfully",
+      });
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "destructive",
+      });
+      console.error("Error updating category:", error);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingCategory) {
-      // Edit existing category
-      setCategories(categories.map(cat => 
-        cat.id === editingCategory.id ? { ...cat, name: categoryName } : cat
-      ));
+      updateCategory.mutate({ id: editingCategory.id, name: categoryName });
     } else {
-      // Add new category
-      const newCategory = {
-        id: String(categories.length + 1),
-        name: categoryName,
-      };
-      setCategories([...categories, newCategory]);
+      createCategory.mutate(categoryName);
     }
-    
-    handleCloseDialog();
   };
 
   const handleEdit = (category: Category) => {
@@ -71,6 +130,14 @@ const Categories = () => {
     setEditingCategory(null);
     setCategoryName("");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p>Loading categories...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
