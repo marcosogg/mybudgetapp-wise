@@ -10,23 +10,20 @@ import { FileUpload } from "@/components/transactions/import/FileUpload";
 import { CSVPreview } from "@/components/transactions/import/CSVPreview";
 import { ImportProgress } from "@/components/transactions/import/ImportProgress";
 
-interface CSVRow {
-  date: string;
-  description: string;
-  amount: string;
-  [key: string]: string;
-}
+// Expected CSV headers in order
+const EXPECTED_HEADERS = [
+  'Type', 'Product', 'Started Date', 'Completed Date', 
+  'Description', 'Amount', 'Fee', 'Currency', 'State', 'Balance'
+];
 
-const HEADER_MAPPING = {
-  'completed date': 'date',
-  'description': 'description',
-  'amount': 'amount'
-};
+// Indices for the columns we care about
+const DATE_INDEX = 3; // Completed Date
+const DESCRIPTION_INDEX = 4;
+const AMOUNT_INDEX = 5;
 
 const TransactionImport = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [previewData, setPreviewData] = useState<CSVRow[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
+  const [previewData, setPreviewData] = useState<Array<{ date: string; description: string; amount: string; }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [totalRows, setTotalRows] = useState(0);
@@ -42,9 +39,7 @@ const TransactionImport = () => {
     setIsComplete(false);
     setProcessedRows(0);
     
-    if (!selectedFile) {
-      return;
-    }
+    if (!selectedFile) return;
 
     if (!selectedFile.name.endsWith('.csv')) {
       toast({
@@ -59,41 +54,28 @@ const TransactionImport = () => {
     
     Papa.parse(selectedFile, {
       complete: (results) => {
-        if (results.data.length > 0) {
-          const originalHeaders = results.data[0] as string[];
-          const headerMap = new Map(
-            originalHeaders.map((header, index) => [header.toLowerCase(), { original: header, index }])
-          );
-
-          // Check for required columns using the mapping
-          const missingColumns = Object.entries(HEADER_MAPPING).filter(
-            ([csvHeader]) => !headerMap.has(csvHeader)
-          );
-
-          if (missingColumns.length > 0) {
-            setError(`Missing required columns: ${missingColumns.map(([, mapped]) => mapped).join(', ')}`);
-            return;
-          }
-
-          const rows = results.data.slice(1) as string[][];
-          const parsedData = rows.map(row => {
-            const rowData: { [key: string]: string } = {};
-            
-            // Map the columns according to our mapping
-            Object.entries(HEADER_MAPPING).forEach(([csvHeader, mappedHeader]) => {
-              const headerInfo = headerMap.get(csvHeader);
-              if (headerInfo) {
-                rowData[mappedHeader] = row[headerInfo.index] || '';
-              }
-            });
-
-            return rowData as CSVRow;
-          });
-
-          setHeaders(Object.values(HEADER_MAPPING));
-          setPreviewData(parsedData.slice(0, 5));
-          setTotalRows(parsedData.length);
+        if (results.data.length === 0) {
+          setError("The CSV file is empty");
+          return;
         }
+
+        const headers = results.data[0] as string[];
+        
+        // Simple header validation
+        if (!EXPECTED_HEADERS.every((header, index) => headers[index] === header)) {
+          setError("Invalid CSV format. Please ensure the file matches the expected format.");
+          return;
+        }
+
+        const rows = results.data.slice(1) as string[][];
+        const parsedData = rows.map(row => ({
+          date: row[DATE_INDEX],
+          description: row[DESCRIPTION_INDEX],
+          amount: row[AMOUNT_INDEX],
+        }));
+
+        setPreviewData(parsedData.slice(0, 5));
+        setTotalRows(parsedData.length);
       },
       error: (error) => {
         toast({
@@ -129,7 +111,7 @@ const TransactionImport = () => {
 
       if (error) throw error;
 
-      // Simulate progress updates (since we can't get real-time progress from the edge function)
+      // Simulate progress updates
       const interval = setInterval(() => {
         setProcessedRows(prev => {
           const next = prev + Math.floor(Math.random() * 5) + 1;
@@ -148,7 +130,6 @@ const TransactionImport = () => {
         });
         queryClient.invalidateQueries({ queryKey: ["transactions"] });
         
-        // Navigate back to transactions after a short delay
         setTimeout(() => {
           navigate('/transactions');
         }, 2000);
@@ -192,7 +173,7 @@ const TransactionImport = () => {
 
             {file && !error && (
               <CSVPreview
-                headers={headers}
+                headers={['Date', 'Description', 'Amount']}
                 previewData={previewData}
                 totalRows={totalRows}
                 onProcess={processFile}
