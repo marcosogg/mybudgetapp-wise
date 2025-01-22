@@ -16,16 +16,36 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route element={<AuthLayout />}>
-            <Route path="/auth" element={<Auth />} />
-          </Route>
-          <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Transactions />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/import" element={<TransactionImport />} />
-            <Route path="/analytics" element={<Analytics />} />
-          </Route>
+          <Route path="/auth" element={
+            <AuthLayout>
+              <Auth />
+            </AuthLayout>
+          } />
+          <Route path="/" element={
+            <DashboardLayout>
+              <Transactions />
+            </DashboardLayout>
+          } />
+          <Route path="/transactions" element={
+            <DashboardLayout>
+              <Transactions />
+            </DashboardLayout>
+          } />
+          <Route path="/categories" element={
+            <DashboardLayout>
+              <Categories />
+            </DashboardLayout>
+          } />
+          <Route path="/import" element={
+            <DashboardLayout>
+              <TransactionImport />
+            </DashboardLayout>
+          } />
+          <Route path="/analytics" element={
+            <DashboardLayout>
+              <Analytics />
+            </DashboardLayout>
+          } />
         </Routes>
       </Router>
       <Toaster />
