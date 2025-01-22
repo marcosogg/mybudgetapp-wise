@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { FileUpload } from "@/components/transactions/import/FileUpload";
 import { CSVPreview } from "@/components/transactions/import/CSVPreview";
+import { ImportProgress } from "@/components/transactions/import/ImportProgress";
 
 interface CSVRow {
   date: string;
@@ -22,6 +23,9 @@ const TransactionImport = () => {
   const [headers, setHeaders] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [totalRows, setTotalRows] = useState(0);
+  const [processedRows, setProcessedRows] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -29,6 +33,8 @@ const TransactionImport = () => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     setError(null);
+    setIsComplete(false);
+    setProcessedRows(0);
     
     if (!selectedFile) {
       return;
@@ -72,6 +78,7 @@ const TransactionImport = () => {
 
           setHeaders(headers);
           setPreviewData(parsedData.slice(0, 5));
+          setTotalRows(parsedData.length);
         }
       },
       error: (error) => {
@@ -108,13 +115,30 @@ const TransactionImport = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: `Successfully imported ${data.transactionsCreated} transactions`,
-      });
+      // Simulate progress updates (since we can't get real-time progress from the edge function)
+      const interval = setInterval(() => {
+        setProcessedRows(prev => {
+          const next = prev + Math.floor(Math.random() * 5) + 1;
+          return next > totalRows ? totalRows : next;
+        });
+      }, 100);
 
-      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      navigate('/transactions');
+      // Cleanup and complete
+      setTimeout(() => {
+        clearInterval(interval);
+        setProcessedRows(totalRows);
+        setIsComplete(true);
+        toast({
+          title: "Success",
+          description: `Successfully imported ${data.transactionsCreated} transactions`,
+        });
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        
+        // Navigate back to transactions after a short delay
+        setTimeout(() => {
+          navigate('/transactions');
+        }, 2000);
+      }, 1000);
 
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -156,8 +180,17 @@ const TransactionImport = () => {
               <CSVPreview
                 headers={headers}
                 previewData={previewData}
+                totalRows={totalRows}
                 onProcess={processFile}
                 isProcessing={isProcessing}
+              />
+            )}
+
+            {isProcessing && (
+              <ImportProgress
+                totalRows={totalRows}
+                processedRows={processedRows}
+                isComplete={isComplete}
               />
             )}
           </div>
