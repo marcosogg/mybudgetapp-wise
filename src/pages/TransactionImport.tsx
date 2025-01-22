@@ -1,199 +1,22 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import Papa from 'papaparse';
-import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { FileUpload } from "@/components/transactions/import/FileUpload";
 import { CSVPreview } from "@/components/transactions/import/CSVPreview";
 import { ImportProgress } from "@/components/transactions/import/ImportProgress";
-
-// Expected CSV headers in order
-const EXPECTED_HEADERS = [
-  'Type', 'Product', 'Started Date', 'Completed Date', 
-  'Description', 'Amount', 'Fee', 'Currency', 'State', 'Balance'
-];
-
-// Indices for the columns we care about
-const DATE_INDEX = 3; // Completed Date
-const DESCRIPTION_INDEX = 4;
-const AMOUNT_INDEX = 5;
-
-// Helper function to validate and format date
-const formatDate = (dateStr: string): string | null => {
-  if (!dateStr?.trim()) return null;
-  
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return null;
-  
-  // Format as YYYY-MM-DD
-  return date.toISOString().split('T')[0];
-};
+import { useCSVImport } from "@/components/transactions/import/hooks/useCSVImport";
 
 const TransactionImport = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewData, setPreviewData] = useState<Array<{ date: string; description: string; amount: string; }>>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [totalRows, setTotalRows] = useState(0);
-  const [processedRows, setProcessedRows] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    setError(null);
-    setIsComplete(false);
-    setProcessedRows(0);
-    
-    if (!selectedFile) return;
-
-    if (!selectedFile.name.endsWith('.csv')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select a CSV file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setFile(selectedFile);
-    
-    Papa.parse(selectedFile, {
-      complete: (results) => {
-        if (results.data.length === 0) {
-          setError("The CSV file is empty");
-          return;
-        }
-
-        const headers = results.data[0] as string[];
-        
-        // Simple header validation
-        if (!EXPECTED_HEADERS.every((header, index) => headers[index] === header)) {
-          setError("Invalid CSV format. Please ensure the file matches the expected format.");
-          return;
-        }
-
-        const rows = results.data.slice(1) as string[][];
-        const parsedData = rows.map(row => ({
-          date: formatDate(row[DATE_INDEX]) || '',
-          description: row[DESCRIPTION_INDEX],
-          amount: row[AMOUNT_INDEX],
-        }));
-
-        // Filter out rows with invalid dates and positive amounts
-        const validData = parsedData.filter(row => {
-          const amount = parseFloat(row.amount);
-          return row.date && amount < 0;
-        });
-        
-        if (validData.length === 0) {
-          setError("No valid transactions found in the file. Please check the date format and ensure there are negative amounts.");
-          return;
-        }
-
-        setPreviewData(validData.slice(0, 5));
-        setTotalRows(validData.length);
-      },
-      error: (error) => {
-        toast({
-          title: "Error parsing CSV",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    });
-  };
-
-  const processFile = async () => {
-    if (!file) return;
-
-    try {
-      setIsProcessing(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-
-      // Parse the entire file
-      const transactions: any[] = await new Promise((resolve, reject) => {
-        Papa.parse(file, {
-          complete: (results) => {
-            const rows = results.data.slice(1) as string[][]; // Skip header row
-            const parsedTransactions = rows
-              .map(row => {
-                const date = formatDate(row[DATE_INDEX]);
-                const amount = parseFloat(row[AMOUNT_INDEX]);
-                if (!date || amount >= 0) return null;
-                
-                return {
-                  user_id: user.id,
-                  date,
-                  description: row[DESCRIPTION_INDEX],
-                  amount,
-                  tags: [],
-                  category_id: null,
-                };
-              })
-              .filter((t): t is NonNullable<typeof t> => t !== null);
-            
-            resolve(parsedTransactions);
-          },
-          error: reject,
-        });
-      });
-
-      if (transactions.length === 0) {
-        throw new Error("No valid transactions found in the file");
-      }
-
-      // Send transactions directly to edge function
-      const { data, error } = await supabase.functions.invoke('process-csv', {
-        body: { transactions, userId: user.id }
-      });
-
-      if (error) throw error;
-
-      // Simulate progress updates
-      const interval = setInterval(() => {
-        setProcessedRows(prev => {
-          const next = prev + Math.floor(Math.random() * 5) + 1;
-          return next > totalRows ? totalRows : next;
-        });
-      }, 100);
-
-      // Cleanup and complete
-      setTimeout(() => {
-        clearInterval(interval);
-        setProcessedRows(totalRows);
-        setIsComplete(true);
-        toast({
-          title: "Success",
-          description: `Successfully imported ${data.transactionsCreated} transactions`,
-        });
-        queryClient.invalidateQueries({ queryKey: ["transactions"] });
-        
-        setTimeout(() => {
-          navigate('/transactions');
-        }, 2000);
-      }, 1000);
-
-    } catch (error: any) {
-      console.error("Processing error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to process file",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const {
+    file,
+    previewData,
+    error,
+    isProcessing,
+    totalRows,
+    processedRows,
+    isComplete,
+    handleFileChange,
+    processFile,
+  } = useCSVImport();
 
   return (
     <div className="space-y-6">
