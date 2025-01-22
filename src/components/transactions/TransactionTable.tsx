@@ -72,22 +72,38 @@ export const TransactionTable = ({
         throw new Error("User not authenticated");
       }
 
+      // First, check if the transaction still exists and belongs to the user
+      const { data: existingTransaction, error: checkError } = await supabase
+        .from("transactions")
+        .select()
+        .eq("id", editingTransaction.id)
+        .eq("user_id", user.id)
+        .single();
+
+      if (checkError) {
+        throw new Error("Transaction not found or access denied");
+      }
+
       const updateData = {
         date: values.date,
         description: values.description,
         amount: values.amount,
         category_id: values.category_id === "null" ? null : values.category_id,
         tags: values.tags,
-        user_id: user.id,
       };
 
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from("transactions")
         .update(updateData)
         .eq("id", editingTransaction.id)
         .eq("user_id", user.id);
 
-      if (error) throw error;
+      if (updateError) {
+        if (updateError.code === '23505') {
+          throw new Error("A transaction with these details already exists");
+        }
+        throw updateError;
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["transactions"] });
       setEditingTransaction(null);
