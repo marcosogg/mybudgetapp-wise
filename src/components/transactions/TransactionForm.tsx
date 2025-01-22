@@ -77,7 +77,7 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
             .select()
             .eq("description_keyword", values.description)
             .eq("user_id", user.id)
-            .single();
+            .maybeSingle();
 
           if (!existingMapping) {
             // Create new mapping
