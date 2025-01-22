@@ -106,6 +106,38 @@ export const TransactionTable = ({
     }
   };
 
+  const handleDeleteTransaction = async (transaction: Transaction) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", transaction.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      
+      toast({
+        title: "Success",
+        description: "Transaction deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("Error deleting transaction:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete transaction",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <Table>
@@ -117,6 +149,7 @@ export const TransactionTable = ({
               transaction={transaction}
               formatCurrency={formatCurrency}
               onEdit={setEditingTransaction}
+              onDelete={handleDeleteTransaction}
             />
           ))}
         </TableBody>
