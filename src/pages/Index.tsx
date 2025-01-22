@@ -1,10 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, DollarSign, PieChart, Upload, Wallet } from "lucide-react";
+import { ArrowRight, DollarSign, FileUp, PieChart, Upload, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
+
+  // Fetch recent transaction count
+  const { data: transactionCount } = useQuery({
+    queryKey: ['transactionCount'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+  });
 
   return (
     <div className="space-y-8">
@@ -17,6 +30,34 @@ const Index = () => {
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
+          <Card className="p-6">
+            <h3 className="text-xl font-semibold mb-4">Transaction Management</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Total Transactions</span>
+                <span className="text-2xl font-bold">{transactionCount}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={() => navigate("/transactions")}
+                >
+                  View All
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => navigate("/transactions/import")}
+                >
+                  Import CSV
+                  <FileUp className="ml-2 w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+
           <div className="space-y-4">
             <FeatureItem
               icon={<DollarSign className="w-6 h-6" />}
@@ -59,9 +100,9 @@ const Index = () => {
               <Button 
                 className="w-full" 
                 variant="default"
-                onClick={() => navigate("/reports")}
+                onClick={() => navigate("/categories")}
               >
-                View Reports
+                Manage Categories
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
