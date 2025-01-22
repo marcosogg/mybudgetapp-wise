@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeTags } from "@/utils/tagUtils";
 
 interface TransactionFormProps {
   initialData?: {
@@ -25,6 +26,7 @@ interface TransactionFormProps {
     description: string;
     amount: number;
     category_id: string | null;
+    tags?: string[];
   };
   onSubmit: (values: TransactionFormValues) => void;
   onCancel: () => void;
@@ -35,6 +37,7 @@ export interface TransactionFormValues {
   description: string;
   amount: number;
   category_id: string | null;
+  tags: string[];
 }
 
 export function TransactionForm({ initialData, onSubmit, onCancel }: TransactionFormProps) {
@@ -44,6 +47,7 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
       description: "",
       amount: 0,
       category_id: null,
+      tags: [],
     },
   });
 
@@ -59,9 +63,14 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
     },
   });
 
+  const handleSubmit = (values: TransactionFormValues) => {
+    const normalizedTags = normalizeTags(values.tags.join(','));
+    onSubmit({ ...values, tags: normalizedTags });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="date"
@@ -133,6 +142,25 @@ export function TransactionForm({ initialData, onSubmit, onCancel }: Transaction
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tags (comma-separated)</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value?.join(', ') || ''}
+                  onChange={(e) => field.onChange(normalizeTags(e.target.value))}
+                  placeholder="e.g. groceries, household, essential"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

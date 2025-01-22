@@ -24,7 +24,8 @@ export const TransactionHeader = () => {
         .insert([{
           ...values,
           user_id: user.id,
-          category_id: values.category_id === "null" ? null : values.category_id
+          category_id: values.category_id === "null" ? null : values.category_id,
+          tags: values.tags || []
         }]);
 
       if (error) throw error;

@@ -52,6 +52,7 @@ export const TransactionTableHeader = ({ toggleSort }: TransactionTableHeaderPro
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         </TableHead>
+        <TableHead>Tags</TableHead>
         <TableHead className="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>
