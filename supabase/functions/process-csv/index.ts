@@ -47,19 +47,20 @@ serve(async (req) => {
     const csvText = await fileData.text()
     const [headers, ...rows] = parse(csvText, { skipFirstRow: false })
 
-    // Validate required columns
-    const requiredColumns = ['date', 'description', 'amount']
-    const headerMap = new Map(
-      headers.map((header: string, index: number) => [header.toLowerCase().trim(), index])
-    )
+    // Define expected column indices
+    const DATE_INDEX = 3; // Completed Date
+    const DESCRIPTION_INDEX = 4;
+    const AMOUNT_INDEX = 5;
 
-    const missingColumns = requiredColumns.filter(
-      col => !Array.from(headerMap.keys()).includes(col)
-    )
+    // Validate headers
+    const expectedHeaders = [
+      'Type', 'Product', 'Started Date', 'Completed Date', 
+      'Description', 'Amount', 'Fee', 'Currency', 'State', 'Balance'
+    ];
 
-    if (missingColumns.length > 0) {
+    if (!expectedHeaders.every((header, index) => headers[index] === header)) {
       return new Response(
-        JSON.stringify({ error: `Missing required columns: ${missingColumns.join(', ')}` }),
+        JSON.stringify({ error: 'Invalid CSV format. Please ensure the file matches the expected format.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
@@ -67,9 +68,9 @@ serve(async (req) => {
     // Process rows and insert into transactions table
     const transactions = rows.map((row: string[]) => ({
       user_id: userId,
-      date: row[headerMap.get('date')!],
-      description: row[headerMap.get('description')!],
-      amount: parseFloat(row[headerMap.get('amount')!]),
+      date: row[DATE_INDEX], // Completed Date
+      description: row[DESCRIPTION_INDEX],
+      amount: parseFloat(row[AMOUNT_INDEX]),
       tags: [],
     }))
 
