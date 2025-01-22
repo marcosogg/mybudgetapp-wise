@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Categories from "./pages/Categories";
 import Transactions from "./pages/Transactions";
+import TransactionImport from "./pages/TransactionImport";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Transactions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions/import"
+            element={
+              <ProtectedRoute>
+                <TransactionImport />
               </ProtectedRoute>
             }
           />

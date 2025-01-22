@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, DollarSign, PieChart, Wallet } from "lucide-react";
+import { ArrowRight, DollarSign, PieChart, Upload, Wallet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-8">
       <div>
@@ -37,11 +40,27 @@ const Index = () => {
           <Card className="p-6">
             <h3 className="text-2xl font-bold mb-6">Quick Actions</h3>
             <div className="space-y-4">
-              <Button className="w-full" variant="default">
+              <Button 
+                className="w-full" 
+                variant="default"
+                onClick={() => navigate("/transactions")}
+              >
                 Add Transaction
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-              <Button className="w-full" variant="default">
+              <Button 
+                className="w-full" 
+                variant="default"
+                onClick={() => navigate("/transactions/import")}
+              >
+                Import Transactions
+                <Upload className="ml-2 w-4 h-4" />
+              </Button>
+              <Button 
+                className="w-full" 
+                variant="default"
+                onClick={() => navigate("/reports")}
+              >
                 View Reports
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
