@@ -31,11 +31,10 @@ export const TagsField = ({ form }: TagsFieldProps) => {
     },
   });
 
-  // Transform and deduplicate tags from all transactions
   const availableTags = Array.from(
     new Set(
       transactions
-        .flatMap(t => Array.isArray(t.tags) ? t.tags : [])
+        .flatMap((t) => t.tags || [])
         .filter(Boolean)
     )
   ).sort();
