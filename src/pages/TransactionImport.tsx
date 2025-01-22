@@ -14,6 +14,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 interface CSVRow {
   date: string;
@@ -27,7 +29,10 @@ const TransactionImport = () => {
   const [previewData, setPreviewData] = useState<CSVRow[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -48,14 +53,12 @@ const TransactionImport = () => {
 
     setFile(selectedFile);
     
-    // Parse CSV file
     Papa.parse(selectedFile, {
       complete: (results) => {
         if (results.data.length > 0) {
           const headers = results.data[0] as string[];
           const rows = results.data.slice(1) as string[][];
           
-          // Validate required columns
           const requiredColumns = ['date', 'description', 'amount'];
           const headerLower = headers.map(h => h.toLowerCase());
           const missingColumns = requiredColumns.filter(
@@ -67,7 +70,6 @@ const TransactionImport = () => {
             return;
           }
 
-          // Convert rows to objects with headers as keys
           const parsedData = rows.map(row => {
             const rowData: { [key: string]: string } = {};
             headers.forEach((header, index) => {
@@ -77,7 +79,7 @@ const TransactionImport = () => {
           });
 
           setHeaders(headers);
-          setPreviewData(parsedData.slice(0, 5)); // Show first 5 rows as preview
+          setPreviewData(parsedData.slice(0, 5));
         }
       },
       error: (error) => {
@@ -90,36 +92,50 @@ const TransactionImport = () => {
     });
   };
 
-  const uploadFile = async () => {
+  const processFile = async () => {
     if (!file) return;
 
     try {
+      setIsProcessing(true);
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         throw new Error("User not authenticated");
       }
 
       // Upload to temp storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const filePath = `${user.id}/${file.name}`;
+      const { error: uploadError } = await supabase.storage
         .from('temp_csv_files')
-        .upload(`${user.id}/${file.name}`, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      toast({
-        title: "Success",
-        description: "File uploaded successfully. Processing...",
+      // Process the CSV file
+      const { data, error } = await supabase.functions.invoke('process-csv', {
+        body: { filePath, userId: user.id }
       });
 
-      // TODO: Add processing logic here
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Successfully imported ${data.transactionsCreated} transactions`,
+      });
+
+      // Refresh transactions data and navigate back
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      navigate('/transactions');
 
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to upload file",
+        description: error.message || "Failed to process file",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -206,8 +222,11 @@ const TransactionImport = () => {
                     </div>
 
                     <div className="flex justify-end">
-                      <Button onClick={uploadFile}>
-                        Process Import
+                      <Button 
+                        onClick={processFile} 
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? "Processing..." : "Process Import"}
                       </Button>
                     </div>
                   </div>
