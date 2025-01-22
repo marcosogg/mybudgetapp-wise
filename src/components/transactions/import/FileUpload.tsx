@@ -1,5 +1,5 @@
-import { Upload } from "lucide-react";
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Upload, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface FileUploadProps {
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
