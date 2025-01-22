@@ -28,7 +28,7 @@ export const TransactionTableHeader = ({ toggleSort }: TransactionTableHeaderPro
             onClick={() => toggleSort("description")}
             className="flex items-center gap-2"
           >
-            Description
+            Description(Vendor)
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         </TableHead>
