@@ -1,99 +1,36 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import Index from "./pages/Index";
+import DashboardLayout from "./components/layouts/DashboardLayout";
+import AuthLayout from "./components/layouts/AuthLayout";
 import Auth from "./pages/Auth";
-import Categories from "./pages/Categories";
 import Transactions from "./pages/Transactions";
+import Categories from "./pages/Categories";
 import TransactionImport from "./pages/TransactionImport";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(!!session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (session === null) {
-    return null; // Loading state
-  }
-
-  if (!session) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return <DashboardLayout>{children}</DashboardLayout>;
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/auth" element={<Auth />} />
-          <Route
-            path="/categories"
-            element={
-              <ProtectedRoute>
-                <Categories />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transactions"
-            element={
-              <ProtectedRoute>
-                <Transactions />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/transactions/import"
-            element={
-              <ProtectedRoute>
-                <TransactionImport />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reminders"
-            element={
-              <ProtectedRoute>
-                <div>Reminders Page</div>
-              </ProtectedRoute>
-            }
-          />
+          <Route element={<AuthLayout />}>
+            <Route path="/auth" element={<Auth />} />
+          </Route>
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Transactions />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/import" element={<TransactionImport />} />
+            <Route path="/analytics" element={<Analytics />} />
+          </Route>
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </Router>
+      <Toaster />
+    </QueryClientProvider>
+  );
+}
 
 export default App;
