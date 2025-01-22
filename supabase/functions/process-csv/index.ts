@@ -23,6 +23,8 @@ serve(async (req) => {
       )
     }
 
+    console.log('Processing file:', filePath, 'for user:', userId)
+
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -67,12 +69,15 @@ serve(async (req) => {
 
     // Process rows and insert into transactions table
     const transactions = rows.map((row: string[]) => ({
-      user_id: userId,
-      date: row[DATE_INDEX], // Completed Date
+      user_id: userId,  // Explicitly set the user_id for each transaction
+      date: row[DATE_INDEX],
       description: row[DESCRIPTION_INDEX],
       amount: parseFloat(row[AMOUNT_INDEX]),
       tags: [],
+      category_id: null, // Set to null initially
     }))
+
+    console.log(`Preparing to insert ${transactions.length} transactions for user ${userId}`)
 
     // Insert transactions in batches of 100
     const batchSize = 100
@@ -80,6 +85,8 @@ serve(async (req) => {
     
     for (let i = 0; i < transactions.length; i += batchSize) {
       const batch = transactions.slice(i, i + batchSize)
+      console.log(`Inserting batch ${i/batchSize + 1} of ${Math.ceil(transactions.length/batchSize)}`)
+      
       const { data, error } = await supabase
         .from('transactions')
         .insert(batch)
@@ -88,7 +95,7 @@ serve(async (req) => {
       if (error) {
         console.error('Error inserting batch:', error)
         return new Response(
-          JSON.stringify({ error: 'Failed to insert transactions' }),
+          JSON.stringify({ error: 'Failed to insert transactions', details: error }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         )
       }
