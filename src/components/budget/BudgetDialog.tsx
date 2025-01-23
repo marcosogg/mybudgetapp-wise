@@ -29,10 +29,16 @@ import {
 import { useBudgetSubmit } from "@/hooks/budget/useBudgetSubmit";
 import { Budget } from "@/hooks/budget/types";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 const budgetFormSchema = z.object({
-  category_id: z.string().min(1, "Category is required"),
-  amount: z.string().min(1, "Amount is required"),
+  category_id: z.string().min(1, "Please select a category"),
+  amount: z.string()
+    .min(1, "Amount is required")
+    .refine(
+      (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      "Please enter a valid amount greater than 0"
+    ),
 });
 
 type BudgetFormValues = z.infer<typeof budgetFormSchema>;
@@ -104,6 +110,7 @@ export function BudgetDialog({ open, onOpenChange, selectedBudget }: BudgetDialo
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    disabled={categoriesLoading}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -139,8 +146,14 @@ export function BudgetDialog({ open, onOpenChange, selectedBudget }: BudgetDialo
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? (selectedBudget ? "Updating..." : "Adding...") : (selectedBudget ? "Update Budget" : "Add Budget")}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isPending || !form.formState.isValid}
+            >
+              {isPending 
+                ? (selectedBudget ? "Updating..." : "Adding...") 
+                : (selectedBudget ? "Update Budget" : "Add Budget")}
             </Button>
           </form>
         </Form>

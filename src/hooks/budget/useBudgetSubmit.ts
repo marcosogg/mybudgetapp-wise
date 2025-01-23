@@ -15,6 +15,20 @@ export function useBudgetSubmit() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // Check for existing budget for this category/month/year
+      const { data: existingBudget } = await supabase
+        .from("budgets")
+        .select()
+        .eq('category_id', budget.category_id)
+        .eq('month', budget.month)
+        .eq('year', budget.year)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existingBudget && !budget.id) {
+        throw new Error(`A budget for this category already exists for ${budget.month}/${budget.year}`);
+      }
+
       if (budget.id) {
         // Update existing budget
         const { error } = await supabase
@@ -44,7 +58,11 @@ export function useBudgetSubmit() {
       toast.success("Budget saved successfully");
     },
     onError: (error) => {
-      toast.error("Failed to save budget");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to save budget");
+      }
       console.error("Error saving budget:", error);
     },
   });
