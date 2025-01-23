@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { IncomeSection } from "@/components/budget/IncomeSection";
 
 const Budget = () => {
   return (
@@ -8,14 +9,7 @@ const Budget = () => {
       </div>
 
       <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Income</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Income management coming soon...</p>
-          </CardContent>
-        </Card>
+        <IncomeSection />
 
         <Card>
           <CardHeader>
