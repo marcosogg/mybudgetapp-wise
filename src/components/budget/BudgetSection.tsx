@@ -41,11 +41,19 @@ export function BudgetSection() {
     const previousMonthFormatted = format(previousMonth, "yyyy-MM-dd");
     
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
       // Fetch previous month's budgets
       const { data: previousBudgets, error: fetchError } = await supabase
         .from("budgets")
         .select("*")
-        .eq("period", previousMonthFormatted);
+        .eq("period", previousMonthFormatted)
+        .eq("user_id", user.id);
 
       if (fetchError) throw fetchError;
       if (!previousBudgets?.length) {
@@ -61,6 +69,7 @@ export function BudgetSection() {
             category_id: budget.category_id,
             amount: budget.amount,
             period: format(selectedMonth, "yyyy-MM-dd"),
+            user_id: user.id // Include user_id in the new budgets
           }))
         );
 
