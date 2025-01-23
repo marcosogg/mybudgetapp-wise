@@ -124,21 +124,27 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bonus: number
           created_at: string
           email: string
           id: string
+          salary: number
           updated_at: string
         }
         Insert: {
+          bonus?: number
           created_at?: string
           email: string
           id: string
+          salary?: number
           updated_at?: string
         }
         Update: {
+          bonus?: number
           created_at?: string
           email?: string
           id?: string
+          salary?: number
           updated_at?: string
         }
         Relationships: []
