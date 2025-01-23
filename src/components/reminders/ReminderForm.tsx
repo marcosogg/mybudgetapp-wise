@@ -34,7 +34,7 @@ export function ReminderForm({ onSuccess, defaultValues }: ReminderFormProps) {
     },
   });
 
-  const { mutate: submitReminder, isLoading } = useReminderSubmit();
+  const { mutate: submitReminder, isPending } = useReminderSubmit();
 
   const onSubmit = (values: ReminderFormValues) => {
     submitReminder(values, {
@@ -118,8 +118,8 @@ export function ReminderForm({ onSuccess, defaultValues }: ReminderFormProps) {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Reminder"}
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Saving..." : "Save Reminder"}
         </Button>
       </form>
     </Form>

@@ -9,9 +9,18 @@ export function useReminderSubmit() {
 
   return useMutation({
     mutationFn: async (values: ReminderFormValues) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const reminderData = {
+        ...values,
+        user_id: user.id,
+        status: 'active' as const
+      };
+
       const { data, error } = await supabase
         .from("reminders")
-        .insert([values])
+        .insert([reminderData])
         .select()
         .single();
 
