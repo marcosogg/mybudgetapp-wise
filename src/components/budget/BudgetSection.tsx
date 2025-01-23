@@ -7,9 +7,11 @@ import { BudgetTable } from "./BudgetTable";
 import { useBudgets } from "@/hooks/budget/useBudgets";
 import { useProfile } from "@/hooks/useProfile";
 import { Progress } from "@/components/ui/progress";
+import { Budget } from "@/hooks/budget/types";
 
 export function BudgetSection() {
   const [open, setOpen] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>();
   const { data: budgets, isLoading: isLoadingBudgets } = useBudgets();
   const { profile, isLoading: isLoadingProfile } = useProfile();
 
@@ -18,13 +20,23 @@ export function BudgetSection() {
   const budgetPercentage = monthlyIncome > 0 ? (totalBudget / monthlyIncome) * 100 : 0;
   const remainingBudget = monthlyIncome - totalBudget;
 
+  const handleEdit = (budget: Budget) => {
+    setSelectedBudget(budget);
+    setOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setSelectedBudget(undefined);
+    setOpen(true);
+  };
+
   const isLoading = isLoadingBudgets || isLoadingProfile;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Budget Allocation</CardTitle>
-        <Button onClick={() => setOpen(true)} size="sm">
+        <Button onClick={handleAddNew} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Budget
         </Button>
@@ -58,11 +70,15 @@ export function BudgetSection() {
                 {budgetPercentage.toFixed(1)}% of income budgeted
               </p>
             </div>
-            <BudgetTable budgets={budgets || []} onEdit={() => setOpen(true)} />
+            <BudgetTable budgets={budgets || []} onEdit={handleEdit} />
           </>
         )}
       </CardContent>
-      <BudgetDialog open={open} onOpenChange={setOpen} />
+      <BudgetDialog 
+        open={open} 
+        onOpenChange={setOpen} 
+        selectedBudget={selectedBudget}
+      />
     </Card>
   );
 }

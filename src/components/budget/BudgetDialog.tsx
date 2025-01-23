@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -26,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useBudgetSubmit } from "@/hooks/budget/useBudgetSubmit";
+import { Budget } from "@/hooks/budget/types";
+import { useEffect } from "react";
 
 const budgetFormSchema = z.object({
   category_id: z.string().min(1, "Category is required"),
@@ -37,9 +40,10 @@ type BudgetFormValues = z.infer<typeof budgetFormSchema>;
 interface BudgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  selectedBudget?: Budget;
 }
 
-export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
+export function BudgetDialog({ open, onOpenChange, selectedBudget }: BudgetDialogProps) {
   const { categories, isLoading: categoriesLoading } = useCategories();
   const { mutate: submitBudget, isPending } = useBudgetSubmit();
 
@@ -51,9 +55,24 @@ export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
     },
   });
 
+  useEffect(() => {
+    if (selectedBudget) {
+      form.reset({
+        category_id: selectedBudget.category_id,
+        amount: selectedBudget.amount.toString(),
+      });
+    } else {
+      form.reset({
+        category_id: "",
+        amount: "",
+      });
+    }
+  }, [selectedBudget, form]);
+
   const onSubmit = (values: BudgetFormValues) => {
     const currentDate = new Date();
     submitBudget({
+      id: selectedBudget?.id,
       category_id: values.category_id,
       amount: parseFloat(values.amount),
       month: currentDate.getMonth() + 1,
@@ -67,7 +86,12 @@ export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Budget</DialogTitle>
+          <DialogTitle>{selectedBudget ? "Edit Budget" : "Add Budget"}</DialogTitle>
+          <DialogDescription>
+            {selectedBudget 
+              ? "Update your budget allocation for this category" 
+              : "Set a budget allocation for a category"}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -79,7 +103,7 @@ export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -116,7 +140,7 @@ export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
               )}
             />
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? "Adding..." : "Add Budget"}
+              {isPending ? (selectedBudget ? "Updating..." : "Adding...") : (selectedBudget ? "Update Budget" : "Add Budget")}
             </Button>
           </form>
         </Form>
