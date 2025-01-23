@@ -13,6 +13,7 @@ import Categories from "./pages/Categories";
 import Transactions from "./pages/Transactions";
 import TransactionImport from "./pages/TransactionImport";
 import Budget from "./pages/Budget";
+import Reminders from "./pages/Reminders";
 
 const queryClient = new QueryClient();
 
@@ -97,7 +98,7 @@ const App = () => (
               path="/reminders"
               element={
                 <ProtectedRoute>
-                  <div>Reminders Page</div>
+                  <Reminders />
                 </ProtectedRoute>
               }
             />
