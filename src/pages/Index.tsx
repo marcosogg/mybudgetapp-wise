@@ -31,7 +31,7 @@ const Index = () => {
 
       <BudgetSummary />
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="space-y-8">
         <div className="space-y-6">
           <Card className="p-6">
             <h3 className="text-xl font-semibold mb-4">Transaction Management</h3>
