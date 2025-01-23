@@ -40,8 +40,8 @@ interface BudgetDialogProps {
 }
 
 export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
-  const { data: categories } = useCategories();
-  const { mutate: submitBudget, isLoading } = useBudgetSubmit();
+  const { categories, isLoading: categoriesLoading } = useCategories();
+  const { mutate: submitBudget, isPending } = useBudgetSubmit();
 
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetFormSchema),
@@ -115,8 +115,8 @@ export function BudgetDialog({ open, onOpenChange }: BudgetDialogProps) {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Adding..." : "Add Budget"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Adding..." : "Add Budget"}
             </Button>
           </form>
         </Form>

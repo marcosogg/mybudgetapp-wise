@@ -8,7 +8,14 @@ export function useBudgetSubmit() {
 
   return useMutation({
     mutationFn: async (budget: CreateBudgetInput) => {
-      const { error } = await supabase.from("budgets").insert(budget);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { error } = await supabase.from("budgets").insert({
+        ...budget,
+        user_id: user.id,
+      });
+      
       if (error) throw error;
     },
     onSuccess: () => {
