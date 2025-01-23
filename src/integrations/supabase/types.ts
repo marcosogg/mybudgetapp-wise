@@ -124,6 +124,7 @@ export type Database = {
           bonus: number
           created_at: string
           email: string
+          email_notifications_enabled: boolean | null
           id: string
           salary: number
           updated_at: string
@@ -132,6 +133,7 @@ export type Database = {
           bonus?: number
           created_at?: string
           email: string
+          email_notifications_enabled?: boolean | null
           id: string
           salary?: number
           updated_at?: string
@@ -140,6 +142,7 @@ export type Database = {
           bonus?: number
           created_at?: string
           email?: string
+          email_notifications_enabled?: boolean | null
           id?: string
           salary?: number
           updated_at?: string
@@ -148,30 +151,33 @@ export type Database = {
       }
       reminders: {
         Row: {
-          amount: number | null
+          amount: number
           created_at: string | null
           due_date: string
           id: string
           name: string
           recurrence: string
+          status: string
           user_id: string
         }
         Insert: {
-          amount?: number | null
+          amount: number
           created_at?: string | null
           due_date: string
           id?: string
           name: string
           recurrence: string
+          status?: string
           user_id: string
         }
         Update: {
-          amount?: number | null
+          amount?: number
           created_at?: string | null
           due_date?: string
           id?: string
           name?: string
           recurrence?: string
+          status?: string
           user_id?: string
         }
         Relationships: [

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BudgetSummary } from "@/components/budget/BudgetSummary";
+import { UpcomingReminders } from "@/components/reminders/UpcomingReminders";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -29,7 +30,10 @@ const Index = () => {
         </p>
       </div>
 
-      <BudgetSummary />
+      <div className="grid gap-8 lg:grid-cols-2">
+        <BudgetSummary />
+        <UpcomingReminders />
+      </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
