@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ArrowRight, DollarSign, FileUp, PieChart, Upload, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ const Index = () => {
 
       <BudgetSummary />
 
-      <div className="space-y-8">
+      <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <Card className="p-6">
             <h3 className="text-xl font-semibold mb-4">Transaction Management</h3>
