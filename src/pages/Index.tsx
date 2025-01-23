@@ -4,6 +4,7 @@ import { ArrowRight, DollarSign, FileUp, PieChart, Upload, Wallet } from "lucide
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { BudgetSummary } from "@/components/budget/BudgetSummary";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,6 +28,8 @@ const Index = () => {
           Track expenses, set budgets, and achieve your financial goals
         </p>
       </div>
+
+      <BudgetSummary />
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">

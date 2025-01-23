@@ -237,7 +237,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_budget_comparison: {
+        Args: {
+          p_user_id: string
+          p_period: string
+        }
+        Returns: {
+          category_id: string
+          category_name: string
+          planned_amount: number
+          actual_amount: number
+          variance: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
