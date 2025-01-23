@@ -5,13 +5,11 @@ export interface Budget {
   category_id: string;
   category?: Category;
   amount: number;
-  month: number;
-  year: number;
+  period: string;
 }
 
 export interface CreateBudgetInput {
   category_id: string;
   amount: number;
-  month: number;
-  year: number;
+  period: string;
 }

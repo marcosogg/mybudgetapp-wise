@@ -29,7 +29,6 @@ import {
 import { useBudgetSubmit } from "@/hooks/budget/useBudgetSubmit";
 import { Budget } from "@/hooks/budget/types";
 import { useEffect } from "react";
-import { toast } from "sonner";
 
 const budgetFormSchema = z.object({
   category_id: z.string().min(1, "Please select a category"),
@@ -77,12 +76,14 @@ export function BudgetDialog({ open, onOpenChange, selectedBudget }: BudgetDialo
 
   const onSubmit = (values: BudgetFormValues) => {
     const currentDate = new Date();
+    // Format the date as YYYY-MM-DD for the first day of the current month
+    const period = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-01`;
+    
     submitBudget({
       id: selectedBudget?.id,
       category_id: values.category_id,
       amount: parseFloat(values.amount),
-      month: currentDate.getMonth() + 1,
-      year: currentDate.getFullYear(),
+      period,
     });
     onOpenChange(false);
     form.reset();

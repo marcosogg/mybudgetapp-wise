@@ -15,27 +15,24 @@ export type Database = {
           category_id: string
           created_at: string | null
           id: string
-          month: number
+          period: string
           user_id: string
-          year: number
         }
         Insert: {
           amount: number
           category_id: string
           created_at?: string | null
           id?: string
-          month: number
+          period: string
           user_id: string
-          year: number
         }
         Update: {
           amount?: number
           category_id?: string
           created_at?: string | null
           id?: string
-          month?: number
+          period?: string
           user_id?: string
-          year?: number
         }
         Relationships: [
           {

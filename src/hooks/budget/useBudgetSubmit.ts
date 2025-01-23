@@ -15,18 +15,17 @@ export function useBudgetSubmit() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Check for existing budget for this category/month/year
+      // Check for existing budget for this category/period
       const { data: existingBudget } = await supabase
         .from("budgets")
         .select()
         .eq('category_id', budget.category_id)
-        .eq('month', budget.month)
-        .eq('year', budget.year)
+        .eq('period', budget.period)
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (existingBudget && !budget.id) {
-        throw new Error(`A budget for this category already exists for ${budget.month}/${budget.year}`);
+        throw new Error(`A budget for this category already exists for ${budget.period}`);
       }
 
       if (budget.id) {
