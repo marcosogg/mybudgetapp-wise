@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Categories from "./pages/Categories";
 import Transactions from "./pages/Transactions";
 import TransactionImport from "./pages/TransactionImport";
+import Budget from "./pages/Budget";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <TransactionImport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/budget"
+            element={
+              <ProtectedRoute>
+                <Budget />
               </ProtectedRoute>
             }
           />
