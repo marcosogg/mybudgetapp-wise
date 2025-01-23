@@ -1,18 +1,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, Copy } from "lucide-react";
 import { BudgetDialog } from "./BudgetDialog";
 import { BudgetTable } from "./BudgetTable";
 import { useBudgets } from "@/hooks/budget/useBudgets";
 import { useProfile } from "@/hooks/useProfile";
 import { Progress } from "@/components/ui/progress";
 import { Budget } from "@/hooks/budget/types";
+import { MonthPicker } from "./MonthPicker";
+import { useMonth } from "@/contexts/MonthContext";
+import { toast } from "sonner";
+import { format, subMonths } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 export function BudgetSection() {
   const [open, setOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>();
-  const { data: budgets, isLoading: isLoadingBudgets } = useBudgets();
+  const { selectedMonth } = useMonth();
+  const { data: budgets, isLoading: isLoadingBudgets, refetch } = useBudgets();
   const { profile, isLoading: isLoadingProfile } = useProfile();
 
   const totalBudget = budgets?.reduce((sum, budget) => sum + budget.amount, 0) || 0;
@@ -30,16 +36,63 @@ export function BudgetSection() {
     setOpen(true);
   };
 
+  const handleCopyPreviousMonth = async () => {
+    const previousMonth = subMonths(selectedMonth, 1);
+    const previousMonthFormatted = format(previousMonth, "yyyy-MM-dd");
+    
+    try {
+      // Fetch previous month's budgets
+      const { data: previousBudgets, error: fetchError } = await supabase
+        .from("budgets")
+        .select("*")
+        .eq("period", previousMonthFormatted);
+
+      if (fetchError) throw fetchError;
+      if (!previousBudgets?.length) {
+        toast.error("No budgets found for the previous month");
+        return;
+      }
+
+      // Insert new budgets for current month
+      const { error: insertError } = await supabase
+        .from("budgets")
+        .insert(
+          previousBudgets.map(budget => ({
+            category_id: budget.category_id,
+            amount: budget.amount,
+            period: format(selectedMonth, "yyyy-MM-dd"),
+          }))
+        );
+
+      if (insertError) throw insertError;
+
+      toast.success("Successfully copied previous month's budgets");
+      refetch();
+    } catch (error) {
+      console.error("Error copying budgets:", error);
+      toast.error("Failed to copy previous month's budgets");
+    }
+  };
+
   const isLoading = isLoadingBudgets || isLoadingProfile;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Budget Allocation</CardTitle>
-        <Button onClick={handleAddNew} size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Budget
-        </Button>
+        <div className="space-y-2">
+          <CardTitle>Budget Allocation</CardTitle>
+          <MonthPicker />
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={handleCopyPreviousMonth} size="sm" variant="outline">
+            <Copy className="mr-2 h-4 w-4" />
+            Copy Previous Month
+          </Button>
+          <Button onClick={handleAddNew} size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Budget
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {isLoading ? (
