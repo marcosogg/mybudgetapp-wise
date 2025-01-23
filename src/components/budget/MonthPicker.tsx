@@ -4,14 +4,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { format, addMonths, subMonths } from "date-fns";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMonth } from "@/contexts/MonthContext";
 import { cn } from "@/lib/utils";
 
 export function MonthPicker() {
   const { selectedMonth, setSelectedMonth } = useMonth();
+
+  const handlePreviousMonth = () => {
+    setSelectedMonth(subMonths(selectedMonth, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth(addMonths(selectedMonth, 1));
+  };
 
   return (
     <Popover>
@@ -26,13 +33,26 @@ export function MonthPicker() {
           {format(selectedMonth, "MMMM yyyy")}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={selectedMonth}
-          onSelect={(date) => date && setSelectedMonth(new Date(date.getFullYear(), date.getMonth(), 1))}
-          initialFocus
-        />
+      <PopoverContent className="w-auto p-2" align="start">
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handlePreviousMonth}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center font-medium">
+            {format(selectedMonth, "MMMM yyyy")}
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleNextMonth}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
