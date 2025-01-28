@@ -4,6 +4,7 @@ import { ReminderCard } from "@/components/reminders/ReminderCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ReminderDialog } from "@/components/reminders/ReminderDialog";
+import { CalendarView } from "@/components/reminders/CalendarView";
 import {
   Select,
   SelectContent,
@@ -11,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Reminders() {
   const [status, setStatus] = useState<"active" | "archived">("active");
@@ -28,7 +30,10 @@ export default function Reminders() {
       </div>
 
       <div className="flex items-center gap-4">
-        <Select value={status} onValueChange={(value) => setStatus(value as "active" | "archived")}>
+        <Select
+          value={status}
+          onValueChange={(value) => setStatus(value as "active" | "archived")}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
@@ -39,22 +44,32 @@ export default function Reminders() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <p className="text-muted-foreground">Loading reminders...</p>
-      ) : !reminders?.length ? (
-        <p className="text-muted-foreground">No {status} reminders found</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {reminders.map((reminder) => (
-            <ReminderCard key={reminder.id} reminder={reminder} />
-          ))}
-        </div>
-      )}
+      <Tabs defaultValue="list">
+        <TabsList>
+          <TabsTrigger value="list">List</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="mt-6">
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading reminders...</p>
+          ) : !reminders?.length ? (
+            <p className="text-muted-foreground">
+              No {status} reminders found
+            </p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {reminders.map((reminder) => (
+                <ReminderCard key={reminder.id} reminder={reminder} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        <TabsContent value="calendar" className="mt-6">
+          <CalendarView />
+        </TabsContent>
+      </Tabs>
 
-      <ReminderDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen}
-      />
+      <ReminderDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </div>
   );
 }
