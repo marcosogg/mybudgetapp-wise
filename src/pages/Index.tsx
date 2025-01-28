@@ -1,47 +1,51 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BudgetSummary } from "@/components/budget/BudgetSummary";
+import { BudgetSummaryCard } from "@/components/dashboard/BudgetSummaryCard";
+import { IncomeSummaryCard } from "@/components/dashboard/IncomeSummaryCard";
+import { TransactionSummaryCard } from "@/components/dashboard/TransactionSummaryCard";
+import { BudgetComparisonChart } from "@/components/dashboard/BudgetComparisonChart";
 import { UpcomingReminders } from "@/components/reminders/UpcomingReminders";
-import { TransactionManagement } from "@/components/dashboard/TransactionManagement";
-import { Features } from "@/components/dashboard/Features";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 
 const Index = () => {
-  // Fetch recent transaction count
-  const { data: transactionCount } = useQuery({
-    queryKey: ['transactionCount'],
+  // Fetch recent transaction count and total
+  const { data: transactionStats } = useQuery({
+    queryKey: ['transactionStats'],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data, error } = await supabase
         .from('transactions')
-        .select('*', { count: 'exact', head: true });
-      return count || 0;
+        .select('amount')
+        .gte('date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+        .lte('date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString());
+
+      if (error) throw error;
+
+      return {
+        count: data.length,
+        total: data.reduce((sum, t) => sum + (t.amount < 0 ? Math.abs(t.amount) : 0), 0)
+      };
     },
   });
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold">Welcome to MyBudget</h2>
+        <h2 className="text-3xl font-bold">Dashboard</h2>
         <p className="text-muted-foreground">
-          Track expenses, set budgets, and achieve your financial goals
+          Your financial overview
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <BudgetSummary />
-        <UpcomingReminders />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <BudgetSummaryCard />
+        <IncomeSummaryCard />
+        <TransactionSummaryCard 
+          count={transactionStats?.count || 0}
+          total={transactionStats?.total || 0}
+        />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <TransactionManagement transactionCount={transactionCount} />
-          <Features />
-        </div>
-
-        <div>
-          <QuickActions />
-        </div>
-      </div>
+      <BudgetComparisonChart />
+      <UpcomingReminders />
     </div>
   );
 };
