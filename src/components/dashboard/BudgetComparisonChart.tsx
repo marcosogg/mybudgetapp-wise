@@ -53,24 +53,28 @@ export function BudgetComparisonChart() {
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent 
-                indicator="dashed"
-                formatter={(value: number) => 
-                  new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD'
-                  }).format(value)
-                }
-              />}
+              content={({ label, payload }) => (
+                <ChartTooltipContent 
+                  label={label}
+                  payload={payload}
+                  indicator="dashed"
+                  formatter={(value: number) => 
+                    new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(value)
+                  }
+                />
+              )}
             />
             <Bar 
               dataKey="planned" 
-              fill="var(--color-planned)" 
+              fill={chartConfig.planned.color}
               radius={[4, 4, 0, 0]} 
             />
             <Bar 
               dataKey="actual" 
-              fill="var(--color-actual)" 
+              fill={chartConfig.actual.color}
               radius={[4, 4, 0, 0]} 
             />
           </BarChart>

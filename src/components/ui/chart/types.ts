@@ -1,35 +1,35 @@
-import { ReactNode } from "react"
+import { TooltipProps } from "recharts";
 
-export type ChartConfig = {
-  [k in string]: {
-    label?: ReactNode
-    icon?: React.ComponentType
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<"light" | "dark", string> }
-  )
+export interface ChartConfig {
+  [key: string]: {
+    label: string;
+    color: string;
+  };
 }
 
-export type ChartContextProps = {
-  config: ChartConfig
+export interface ChartContextProps {
+  config: ChartConfig;
 }
 
-export type ChartContainerProps = React.ComponentProps<"div"> & {
-  config: ChartConfig
-  children: React.ComponentProps<any>["children"]
+export interface ChartContainerProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  id?: string;
+  config: ChartConfig;
 }
 
-export type ChartTooltipContentProps = React.ComponentProps<"div"> & {
-  active?: boolean
-  payload?: any[]
-  hideLabel?: boolean
-  hideIndicator?: boolean
-  indicator?: "line" | "dot" | "dashed"
-  nameKey?: string
-  labelKey?: string
-  label?: ReactNode
-  labelFormatter?: (value: any, payload: any[]) => ReactNode
-  labelClassName?: string
-  formatter?: (value: any, name: string, item: any, index: number, payload: any) => ReactNode
-  color?: string
+export interface ChartTooltipContentProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  formatter?: (value: any) => string;
+  indicator?: "solid" | "dashed";
+}
+
+export interface ChartLegendContentProps {
+  payload?: Array<{
+    value: string;
+    type: string;
+    id: string;
+    color: string;
+  }>;
 }
