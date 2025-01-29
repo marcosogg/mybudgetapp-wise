@@ -26,12 +26,17 @@ export function BudgetComparisonChart() {
     month: format(new Date(item.month), 'MMMM'),
     planned: item.planned_total,
     actual: item.actual_total,
-  })) || [];
+  }))?.sort((a, b) => {
+    // Sort months chronologically
+    const monthA = new Date(Date.parse(`${a.month} 1, 2025`));
+    const monthB = new Date(Date.parse(`${b.month} 1, 2025`));
+    return monthA.getTime() - monthB.getTime();
+  }) || [];
 
   // Calculate trend percentage
-  const lastTwoMonths = chartData.slice(0, 2);
+  const lastTwoMonths = chartData.slice(-2);
   const trend = lastTwoMonths.length === 2
-    ? ((lastTwoMonths[0].actual - lastTwoMonths[1].actual) / lastTwoMonths[1].actual) * 100
+    ? ((lastTwoMonths[1].actual - lastTwoMonths[0].actual) / lastTwoMonths[0].actual) * 100
     : 0;
 
   return (
