@@ -1,20 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBudgetComparison } from "@/hooks/budget/useBudgetComparison";
+import { useMonthlyBudgetComparison } from "@/hooks/budget/useMonthlyBudgetComparison";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { format } from "date-fns";
 
 export function BudgetComparisonChart() {
-  const { data: comparison } = useBudgetComparison();
+  const { data: comparison, isLoading } = useMonthlyBudgetComparison();
 
   const chartData = comparison?.map((item) => ({
-    name: item.category_name,
-    planned: item.planned_amount,
-    actual: item.actual_amount,
+    name: format(new Date(item.month), 'MMM yyyy'),
+    planned: item.planned_total,
+    actual: item.actual_total,
   }));
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Budget vs. Actual Spending</CardTitle>
+        <CardTitle>Monthly Budget Overview</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] mt-4">
@@ -23,7 +24,14 @@ export function BudgetComparisonChart() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip />
+              <Tooltip 
+                formatter={(value: number) => 
+                  new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                  }).format(value)
+                }
+              />
               <Legend />
               <Bar dataKey="planned" name="Planned" fill="#93C5FD" />
               <Bar dataKey="actual" name="Actual" fill="#2563EB" />

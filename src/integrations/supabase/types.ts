@@ -256,6 +256,18 @@ export type Database = {
           variance: number
         }[]
       }
+      get_monthly_budget_comparison: {
+        Args: {
+          p_user_id: string
+          p_start_date: string
+          p_end_date: string
+        }
+        Returns: {
+          month: string
+          planned_total: number
+          actual_total: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
