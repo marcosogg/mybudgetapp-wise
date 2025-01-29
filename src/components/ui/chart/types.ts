@@ -4,6 +4,7 @@ export interface ChartConfig {
   [key: string]: {
     label: string;
     color: string;
+    theme?: Record<"light" | "dark", string>;
   };
 }
 
@@ -15,6 +16,7 @@ export interface ChartContainerProps
   extends React.HTMLAttributes<HTMLDivElement> {
   id?: string;
   config: ChartConfig;
+  children: React.ReactElement;
 }
 
 export interface ChartTooltipContentProps {
@@ -23,6 +25,14 @@ export interface ChartTooltipContentProps {
   label?: string;
   formatter?: (value: any) => string;
   indicator?: "solid" | "dashed";
+  className?: string;
+  hideLabel?: boolean;
+  hideIndicator?: boolean;
+  labelFormatter?: (value: any, payload: any[]) => React.ReactNode;
+  labelClassName?: string;
+  color?: string;
+  nameKey?: string;
+  labelKey?: string;
 }
 
 export interface ChartLegendContentProps {
@@ -31,5 +41,6 @@ export interface ChartLegendContentProps {
     type: string;
     id: string;
     color: string;
+    dataKey?: string;
   }>;
 }

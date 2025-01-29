@@ -1,5 +1,11 @@
-export const getPayloadConfigFromPayload = (payload: any, config: any) => {
+import { ChartConfig } from "./types";
+
+export const getPayloadConfigFromPayload = (
+  config: ChartConfig,
+  payload: any,
+  key?: string
+) => {
   if (!payload || !config) return null;
-  const key = Object.keys(config).find((key) => payload.dataKey === key);
-  return key ? config[key] : null;
+  const dataKey = key || payload.dataKey;
+  return dataKey ? config[dataKey] : null;
 };
