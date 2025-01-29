@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useMonth } from "@/contexts/MonthContext";
-import { addMonths, subMonths } from "date-fns";
+import { startOfYear, addMonths } from "date-fns";
 
 interface MonthlyComparison {
   month: string;
@@ -10,13 +9,11 @@ interface MonthlyComparison {
 }
 
 export function useMonthlyBudgetComparison() {
-  const { selectedMonth } = useMonth();
-  
   return useQuery({
-    queryKey: ['monthlyBudgetComparison', selectedMonth],
+    queryKey: ['monthlyBudgetComparison'],
     queryFn: async () => {
-      const endDate = selectedMonth;
-      const startDate = subMonths(endDate, 5); // Get 6 months of data
+      const startDate = startOfYear(new Date(2025, 0, 1));
+      const endDate = addMonths(startDate, 5);
 
       const { data, error } = await supabase
         .rpc('get_monthly_budget_comparison', {
