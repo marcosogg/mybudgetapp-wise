@@ -27,6 +27,7 @@ export type ChartTooltipContentProps = React.ComponentProps<"div"> & {
   indicator?: "line" | "dot" | "dashed"
   nameKey?: string
   labelKey?: string
+  label?: ReactNode
   labelFormatter?: (value: any, payload: any[]) => ReactNode
   labelClassName?: string
   formatter?: (value: any, name: string, item: any, index: number, payload: any) => ReactNode
