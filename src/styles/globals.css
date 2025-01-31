@@ -78,9 +78,84 @@
 }
 
 @layer components {
-  /* Root container styles */
+  /* Container styles */
   .container-root {
-    @apply max-w-[1280px] mx-auto p-8 text-center;
+    @apply max-w-[1280px] mx-auto px-4 md:px-8 bg-background min-h-screen;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-200 p-4 md:p-6;
+  }
+
+  /* Button styles */
+  .btn-facebook {
+    @apply bg-primary text-white hover:bg-[#1877F2]/90 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors 
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+    disabled:opacity-50 disabled:pointer-events-none ring-offset-background
+    h-10 py-2 px-4 shadow-sm;
+  }
+
+  .btn-facebook-secondary {
+    @apply bg-white text-[#1877F2] border border-[#1877F2] hover:bg-[#1877F2]/5 
+    inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+    disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Input styles */
+  .input-facebook {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm 
+    ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium 
+    placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 
+    focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Navigation styles */
+  .nav-item {
+    @apply px-4 py-2 text-sm font-medium text-muted-foreground hover:text-[#1877F2] hover:bg-[#1877F2]/5 rounded-md transition-colors;
+  }
+
+  .nav-item-active {
+    @apply text-[#1877F2] bg-[#1877F2]/5 font-semibold;
+  }
+
+  /* Link styles */
+  .link-facebook {
+    @apply text-[#1877F2] hover:text-[#1877F2]/90 hover:underline transition-colors;
+  }
+
+  /* Header styles */
+  .header-facebook {
+    @apply sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+  }
+
+  /* Content section styles */
+  .content-section {
+    @apply bg-card rounded-lg border border-border p-4 md:p-6 mb-4;
+  }
+
+  /* Avatar styles */
+  .avatar-facebook {
+    @apply rounded-full border-2 border-border bg-background;
+  }
+
+  /* Form group styles */
+  .form-group {
+    @apply space-y-2 mb-4;
+  }
+
+  .form-label {
+    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+
+  /* List styles */
+  .list-facebook {
+    @apply space-y-1;
+  }
+
+  .list-item-facebook {
+    @apply flex items-center space-x-4 rounded-md p-2 hover:bg-accent/10 transition-colors;
   }
 
   /* Logo styles */
@@ -111,11 +186,6 @@
     a:nth-of-type(2) .logo {
       animation: logo-spin infinite 20s linear;
     }
-  }
-
-  /* Card styles */
-  .card {
-    @apply p-8;
   }
 
   /* Docs link styles */

@@ -28,11 +28,11 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="h-full bg-budget-gray p-4 space-y-4 flex flex-col">
+    <div className="h-full p-4 space-y-4 flex flex-col bg-background">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-facebook">MyBudget</h1>
+        <h1 className="text-2xl font-bold text-[#1877F2]">MyBudget</h1>
       </div>
-      <nav className="space-y-2">
+      <nav className="space-y-1.5">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -40,21 +40,21 @@ export const Sidebar = () => {
               key={item.name}
               variant={isActive ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start gap-2",
-                isActive && "bg-facebook hover:bg-facebook-hover"
+                "nav-item w-full justify-start gap-2",
+                isActive && "nav-item-active"
               )}
               onClick={() => navigate(item.href)}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className={cn("h-5 w-5", isActive && "text-[#1877F2]")} />
               {item.name}
             </Button>
           );
         })}
       </nav>
-      <div className="mt-auto pt-4">
+      <div className="mt-auto pt-4 border-t border-border">
         <Button
-          variant="outline"
-          className="w-full justify-start gap-2"
+          variant="ghost"
+          className="nav-item w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/5"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />

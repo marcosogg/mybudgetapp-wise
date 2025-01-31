@@ -18,21 +18,21 @@ export const DashboardLayout = ({ children, className }: DashboardLayoutProps) =
       {/* Mobile Sidebar */}
       <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <SheetTrigger asChild className="lg:hidden">
-          <Button variant="ghost" size="icon" className="ml-2 mt-2">
+          <Button variant="ghost" size="icon" className="btn-facebook-secondary ml-2 mt-2">
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-72">
+        <SheetContent side="left" className="p-0 w-72 bg-background border-r border-border">
           <Sidebar />
         </SheetContent>
       </Sheet>
 
       {/* Desktop Layout */}
       <div className="flex min-h-screen">
-        <aside className="hidden lg:block w-72 border-r">
+        <aside className="hidden lg:block w-72 border-r border-border bg-background">
           <Sidebar />
         </aside>
-        <main className={cn("flex-1 p-8", className)}>{children}</main>
+        <main className={cn("flex-1 container-root", className)}>{children}</main>
       </div>
     </div>
   );

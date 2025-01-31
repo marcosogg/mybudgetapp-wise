@@ -52,18 +52,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:px-0">
-      <Card className="w-full max-w-[400px] mx-auto lg:mx-0">
-        <CardContent className="p-0">
-          <form onSubmit={handleAuth} className="space-y-6 p-6">
+    <div className="container mx-auto flex min-h-screen flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-[400px]">
+        <CardContent className="p-6">
+          <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
+              <h1 className="text-2xl font-semibold">
                 {isSignUp ? "Create an account" : "Welcome back"}
               </h1>
               <p className="text-sm text-muted-foreground">
-                {isSignUp
-                  ? "Sign up to start managing your budget"
-                  : "Login to your account"}
+                {isSignUp ? "Sign up to start managing your budget" : "Login to your account"}
               </p>
             </div>
 
@@ -78,16 +76,13 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
-                  className="bg-muted/50"
                 />
               </div>
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <a 
-                    href="#" 
-                    className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-                  >
+                  <a href="#" className="text-sm text-muted-foreground hover:underline">
                     Forgot your password?
                   </a>
                 </div>
@@ -98,12 +93,15 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className="bg-muted/50"
                 />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-[#1877f2] hover:bg-[#1869d6] text-white" 
+              disabled={isLoading}
+            >
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}
@@ -136,14 +134,14 @@ const Auth = () => {
               </Button>
             </div>
 
-            <div className="text-center text-sm">
+            <div className="text-center text-sm text-muted-foreground">
               {isSignUp ? (
                 <>
                   Already have an account?{" "}
                   <button
                     type="button"
                     onClick={() => setIsSignUp(false)}
-                    className="underline underline-offset-4 hover:text-primary"
+                    className="text-primary hover:underline"
                   >
                     Sign in
                   </button>
@@ -154,7 +152,7 @@ const Auth = () => {
                   <button
                     type="button"
                     onClick={() => setIsSignUp(true)}
-                    className="underline underline-offset-4 hover:text-primary"
+                    className="text-primary hover:underline"
                   >
                     Sign up
                   </button>
@@ -164,16 +162,11 @@ const Auth = () => {
           </form>
         </CardContent>
       </Card>
-      <p className="px-8 text-center text-sm text-muted-foreground mt-4">
+      <p className="mt-4 text-center text-sm text-muted-foreground">
         By clicking continue, you agree to our{" "}
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Terms of Service
-        </a>{" "}
+        <a href="#" className="hover:underline">Terms of Service</a>{" "}
         and{" "}
-        <a href="#" className="underline underline-offset-4 hover:text-primary">
-          Privacy Policy
-        </a>
-        .
+        <a href="#" className="hover:underline">Privacy Policy</a>.
       </p>
     </div>
   );
