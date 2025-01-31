@@ -8,11 +8,11 @@ import { format, startOfYear, addMonths } from "date-fns";
 const chartConfig = {
   planned: {
     label: "Planned",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-1))", // Light blue
   },
   actual: {
     label: "Actual",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-2))", // Dark blue
   },
 } satisfies ChartConfig;
 

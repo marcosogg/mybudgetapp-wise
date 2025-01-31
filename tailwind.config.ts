@@ -57,11 +57,11 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         chart: {
-          1: "hsl(var(--chart-1))",
-          2: "hsl(var(--chart-2))",
-          3: "hsl(var(--chart-3))",
-          4: "hsl(var(--chart-4))",
-          5: "hsl(var(--chart-5))",
+          1: "hsl(214, 89%, 65%)",   // Light Facebook blue
+          2: "hsl(214, 89%, 45%)",   // Darker Facebook blue
+          3: "hsl(197, 37%, 24%)",
+          4: "hsl(43, 74%, 66%)",
+          5: "hsl(27, 87%, 67%)",
         }
       },
       fontFamily: {

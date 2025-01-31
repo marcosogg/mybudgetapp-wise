@@ -4,20 +4,20 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 9% 15%;
+    --background: 220 9% 98%; /* Light gray background */
+    --foreground: 220 9% 15%; /* Dark gray text */
     --card: 0 0% 100%;
     --card-foreground: 220 9% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 9% 15%;
-    --primary: 214 89% 52%;  /* Facebook blue #1877F2 */
-    --primary-hover: 214 89% 47%;  /* Darker Facebook blue for hover */
+    --primary: 214 89% 52%;
+    --primary-hover: 214 89% 47%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 89% 52%;  /* Using Facebook blue for secondary as well */
+    --secondary: 214 89% 52%;
     --secondary-foreground: 0 0% 100%;
     --muted: 210 14% 97%;
     --muted-foreground: 220 8% 46%;
-    --accent: 214 89% 52%;
+     --accent: 214 89% 52%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
@@ -33,18 +33,18 @@
   }
 
   .dark {
-    --background: 220 9% 8%;
-    --foreground: 0 0% 98%;
+    --background: 220 9% 8%; /* Dark gray background */
+    --foreground: 0 0% 98%; /* Light text */
     --card: 220 9% 12%;
     --card-foreground: 0 0% 98%;
     --popover: 220 9% 12%;
     --popover-foreground: 0 0% 98%;
-    --primary: 214 89% 52%;  /* Facebook blue */
-    --primary-hover: 214 89% 47%;  /* Darker Facebook blue for hover */
+    --primary: 214 89% 52%;
+    --primary-hover: 214 89% 47%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 89% 52%;  /* Using Facebook blue for secondary */
+    --secondary: 214 89% 52%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 220 9% 16%;
+     --muted: 220 9% 16%;
     --muted-foreground: 220 8% 70%;
     --accent: 214 89% 52%;
     --accent-foreground: 0 0% 100%;
@@ -62,14 +62,15 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
+    * {
+      @apply border-border;
+    }
+    body {
+      @apply bg-background text-foreground antialiased;
+      font-family: 'Bricolage Grotesque', sans-serif; /* Set the default font */
+      font-feature-settings: "rlig" 1, "calt" 1;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      @apply font-semibold text-foreground;
+    }
   }
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-foreground;
-  }
-}
