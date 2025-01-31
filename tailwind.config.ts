@@ -25,13 +25,8 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         facebook: {
-          DEFAULT: "#1877F2",
-          hover: "#166FE5",
-        },
-        budget: {
-          green: "#42B72A",
-          red: "#FA383E",
-          gray: "#F0F2F5",
+          DEFAULT: "hsl(214, 89%, 52%)",
+          hover: "hsl(214, 89%, 47%)",
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",

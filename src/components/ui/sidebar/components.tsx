@@ -16,6 +16,64 @@ import {
 import { useSidebar } from "./context";
 import { SidebarProps, SidebarMenuButtonProps } from "./types";
 
+export const SidebarRoot = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & SidebarRootProps
+>(
+  (
+    {
+      side = "left",
+      variant = "sidebar",
+      collapsible = "offcanvas",
+      className,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const { state } = useSidebar()
+
+    return (
+      <div
+        ref={ref}
+        data-side={side}
+        data-variant={variant}
+        data-collapsible={collapsible}
+        data-state={state}
+        className={cn("sidebar-wrapper group", className)}
+        {...props}
+      >
+        {/* Sidebar gap */}
+        <div
+          className={cn(
+            "sidebar-gap",
+            variant === "floating" || variant === "inset"
+              ? "sidebar-gap-floating"
+              : "sidebar-gap-default"
+          )}
+        />
+        
+        {/* Sidebar container */}
+        <div
+          className={cn(
+            "sidebar-container",
+            side === "left" ? "sidebar-container-left" : "sidebar-container-right",
+            variant === "floating" || variant === "inset"
+              ? "sidebar-container-floating"
+              : "sidebar-container-default",
+            className
+          )}
+          {...props}
+        >
+          <div data-sidebar="sidebar" className="sidebar-content">
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
 export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
   (
     {

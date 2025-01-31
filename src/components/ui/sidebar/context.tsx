@@ -23,8 +23,8 @@ export function SidebarProvider({
   open: openProp,
   onOpenChange: setOpenProp,
   className,
-  style,
   children,
+  ...props
 }: SidebarProviderProps) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
@@ -83,19 +83,7 @@ export function SidebarProvider({
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delayDuration={0}>
-        <div
-          style={
-            {
-              "--sidebar-width": "16rem",
-              "--sidebar-width-icon": "3rem",
-              ...style,
-            } as React.CSSProperties
-          }
-          className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
-            className
-          )}
-        >
+        <div className={cn("sidebar-wrapper group", className)} {...props}>
           {children}
         </div>
       </TooltipProvider>
