@@ -8,6 +8,7 @@ import { UpcomingReminders } from "@/components/reminders/UpcomingReminders";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -59,7 +60,18 @@ const Index = () => {
         />
       </div>
 
-      <BudgetComparisonChart />
+      <div className="grid gap-6 md:grid-cols-2">
+        <BudgetComparisonChart />
+        <Card>
+          <CardHeader>
+            <CardTitle>Coming Soon</CardTitle>
+          </CardHeader>
+          <CardContent className="min-h-[350px] flex items-center justify-center">
+            <p className="text-muted-foreground text-lg">PLACEHOLDER</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <UpcomingReminders />
     </div>
   );
