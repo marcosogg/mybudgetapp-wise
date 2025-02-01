@@ -9,25 +9,41 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Fetch recent transaction count and total
   const { data: transactionStats } = useQuery({
     queryKey: ['transactionStats'],
     queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('transactions')
         .select('amount')
+        .eq('user_id', session.session.user.id)
         .gte('date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
         .lte('date', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString());
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching transaction stats:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch transaction statistics",
+        });
+        throw error;
+      }
 
       return {
-        count: data.length,
-        total: data.reduce((sum, t) => sum + (t.amount < 0 ? Math.abs(t.amount) : 0), 0)
+        count: data?.length || 0,
+        total: data?.reduce((sum, t) => sum + (t.amount < 0 ? Math.abs(t.amount) : 0), 0) || 0
       };
     },
   });
