@@ -14,11 +14,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSidebar } from "./context";
-import { SidebarProps, SidebarMenuButtonProps } from "./types";
+import { SidebarProps } from "./types";
 
 export const SidebarRoot = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & SidebarRootProps
+  React.HTMLAttributes<HTMLDivElement> & SidebarProps
 >(
   (
     {
