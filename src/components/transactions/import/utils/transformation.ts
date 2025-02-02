@@ -5,8 +5,8 @@ import { CSVRow, CSVParseResult } from '../types';
 export const transformWiseData = (row: CSVRow, userId: string) => ({
   user_id: userId,
   date: formatDate(row.Date)!,
-  description: row.Merchant.trim(),
-  amount: row.Amount, // Keep the negative amount
+  description: row.Merchant?.trim() || null,
+  amount: row.Amount,
   tags: [],
   category_id: null,
 });

@@ -75,7 +75,7 @@ export const useCSVImport = () => {
         ...prev,
         previewData: validRows.slice(0, 5).map(row => ({
           date: formatDate(row.Date)!,
-          description: row.Merchant,
+          description: row.Merchant?.trim() || null,
           amount: row.Amount.toString(),
         })),
         totalRows: validRows.length,

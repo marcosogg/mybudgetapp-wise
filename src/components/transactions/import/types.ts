@@ -6,7 +6,7 @@ export interface ImportError {
 
 export interface ImportState {
   file: File | null;
-  previewData: Array<{ date: string; description: string; amount: string; }>;
+  previewData: Array<{ date: string; description: string | null; amount: string; }>;
   error: string | null;
   isProcessing: boolean;
   totalRows: number;
@@ -17,7 +17,7 @@ export interface ImportState {
 export interface CSVRow {
   Date: string;
   Amount: number;
-  Merchant: string;
+  Merchant?: string;
 }
 
 export type CSVParseResult = ParseResult<CSVRow>;
