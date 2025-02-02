@@ -17,7 +17,7 @@ export interface ImportState {
 export interface CSVRow {
   Date: string;
   Amount: number;
-  Merchant?: string;
+  Merchant?: string | null;
 }
 
 export type CSVParseResult = ParseResult<CSVRow>;

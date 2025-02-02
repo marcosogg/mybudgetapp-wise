@@ -5,7 +5,7 @@ import { CSVRow, CSVParseResult } from '../types';
 export const transformWiseData = (row: CSVRow, userId: string) => ({
   user_id: userId,
   date: formatDate(row.Date)!,
-  description: row.Merchant?.trim() || null,
+  description: row.Merchant?.toString() || null, // Accept any merchant value, including null
   amount: row.Amount,
   tags: [],
   category_id: null,

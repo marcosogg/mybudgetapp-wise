@@ -1,6 +1,7 @@
 import { ImportError } from '../types';
+import { parse, isValid } from 'date-fns';
 
-const REQUIRED_HEADERS = ['Date', 'Amount', 'Merchant'];
+const REQUIRED_HEADERS = ['Date', 'Amount'];
 
 export const validateHeaders = (headers: string[]): ImportError | null => {
   const missingHeaders = REQUIRED_HEADERS.filter(
@@ -27,7 +28,16 @@ export const validateRow = (row: any): ImportError | null => {
 
 export const formatDate = (dateStr: string): string | null => {
   if (!dateStr?.trim()) return null;
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return null;
+  
+  // Try DD/MM/YYYY format
+  let date = parse(dateStr, 'dd/MM/yyyy', new Date());
+  
+  // If that fails, try YYYY-MM-DD format
+  if (!isValid(date)) {
+    date = parse(dateStr, 'yyyy-MM-dd', new Date());
+  }
+  
+  if (!isValid(date)) return null;
+  
   return date.toISOString().split('T')[0];
 };
