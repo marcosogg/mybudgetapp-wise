@@ -2,11 +2,10 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import Papa from 'papaparse';
 import { supabase } from "@/integrations/supabase/client";
-import { validateHeaders, validateRow } from '../utils/validation';
+import { validateHeaders, validateRow, formatDate } from '../utils/validation';
 import { transformWiseData, parseCSVData } from '../utils/transformation';
-import { ImportState, CSVRow } from '../types';
+import { ImportState, CSVRow, CSVParseResult } from '../types';
 
 export const useCSVImport = () => {
   const [state, setState] = useState<ImportState>({

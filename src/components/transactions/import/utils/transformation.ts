@@ -1,6 +1,8 @@
+import Papa from 'papaparse';
 import { formatDate } from './validation';
+import { CSVRow, CSVParseResult } from '../types';
 
-export const transformWiseData = (row: any, userId: string) => ({
+export const transformWiseData = (row: CSVRow, userId: string) => ({
   user_id: userId,
   date: formatDate(row.Date)!,
   description: row.Merchant.trim(),
@@ -9,7 +11,7 @@ export const transformWiseData = (row: any, userId: string) => ({
   category_id: null,
 });
 
-export const parseCSVData = (file: File) => {
+export const parseCSVData = (file: File): Promise<CSVParseResult> => {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,

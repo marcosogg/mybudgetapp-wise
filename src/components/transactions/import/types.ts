@@ -1,3 +1,5 @@
+import { ParseResult } from 'papaparse';
+
 export interface ImportError {
   message: string;
 }
@@ -17,3 +19,5 @@ export interface CSVRow {
   Amount: number;
   Merchant: string;
 }
+
+export type CSVParseResult = ParseResult<CSVRow>;
