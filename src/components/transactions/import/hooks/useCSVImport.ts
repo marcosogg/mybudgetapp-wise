@@ -5,15 +5,8 @@ import { useNavigate } from "react-router-dom";
 import Papa from 'papaparse';
 import { supabase } from "@/integrations/supabase/client";
 
-// Constants moved to a central location
-const EXPECTED_HEADERS = [
-  'Type', 'Product', 'Started Date', 'Completed Date', 
-  'Description', 'Amount', 'Fee', 'Currency', 'State', 'Balance'
-];
-
-const DATE_INDEX = 3;
-const DESCRIPTION_INDEX = 4;
-const AMOUNT_INDEX = 5;
+// Constants for Wise CSV import
+const REQUIRED_HEADERS = ['Date', 'Amount', 'Merchant'];
 
 export interface ImportState {
   file: File | null;
@@ -30,6 +23,34 @@ const formatDate = (dateStr: string): string | null => {
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return null;
   return date.toISOString().split('T')[0];
+};
+
+const validateHeaders = (headers: string[]): string | null => {
+  const missingHeaders = REQUIRED_HEADERS.filter(
+    required => !headers.includes(required)
+  );
+  
+  if (missingHeaders.length > 0) {
+    return `Missing required columns: ${missingHeaders.join(', ')}`;
+  }
+  return null;
+};
+
+const validateRow = (row: any): string | null => {
+  if (!row.Merchant?.trim()) {
+    return 'Merchant name is required';
+  }
+
+  const date = formatDate(row.Date);
+  if (!date) {
+    return 'Invalid date format';
+  }
+
+  if (typeof row.Amount !== 'number' || row.Amount >= 0) {
+    return 'Amount must be a negative number';
+  }
+
+  return null;
 };
 
 export const useCSVImport = () => {
@@ -56,6 +77,15 @@ export const useCSVImport = () => {
     }));
   };
 
+  const transformWiseData = (row: any, userId: string) => ({
+    user_id: userId,
+    date: formatDate(row.Date)!,
+    description: row.Merchant.trim(),
+    amount: row.Amount,
+    tags: [],
+    category_id: null,
+  });
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     resetState();
@@ -63,57 +93,51 @@ export const useCSVImport = () => {
     if (!selectedFile) return;
 
     if (!selectedFile.name.endsWith('.csv')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select a CSV file",
-        variant: "destructive",
-      });
+      setState(prev => ({ 
+        ...prev, 
+        error: "Please select a CSV file" 
+      }));
       return;
     }
 
     setState(prev => ({ ...prev, file: selectedFile }));
     
     Papa.parse(selectedFile, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.trim(),
       complete: (results) => {
-        if (results.data.length === 0) {
-          setState(prev => ({ ...prev, error: "The CSV file is empty" }));
+        const headerError = validateHeaders(Object.keys(results.data[0] || {}));
+        
+        if (headerError) {
+          setState(prev => ({ ...prev, error: headerError }));
           return;
         }
 
-        const headers = results.data[0] as string[];
-        
-        if (!EXPECTED_HEADERS.every((header, index) => headers[index] === header)) {
-          setState(prev => ({ 
-            ...prev, 
-            error: "Invalid CSV format. Please ensure the file matches the expected format." 
-          }));
-          return;
-        }
+        const validRows = results.data
+          .map((row: any) => {
+            const error = validateRow(row);
+            return error ? null : row;
+          })
+          .filter((row): row is NonNullable<typeof row> => row !== null);
 
-        const rows = results.data.slice(1) as string[][];
-        const parsedData = rows.map(row => ({
-          date: formatDate(row[DATE_INDEX]) || '',
-          description: row[DESCRIPTION_INDEX],
-          amount: row[AMOUNT_INDEX],
-        }));
-
-        const validData = parsedData.filter(row => {
-          const amount = parseFloat(row.amount);
-          return row.date && amount < 0;
-        });
-        
-        if (validData.length === 0) {
+        if (validRows.length === 0) {
           setState(prev => ({
             ...prev,
-            error: "No valid transactions found in the file. Please check the date format and ensure there are negative amounts."
+            error: "No valid transactions found in the file"
           }));
           return;
         }
 
         setState(prev => ({
           ...prev,
-          previewData: validData.slice(0, 5),
-          totalRows: validData.length,
+          previewData: validRows.slice(0, 5).map(row => ({
+            date: formatDate(row.Date)!,
+            description: row.Merchant,
+            amount: row.Amount.toString(),
+          })),
+          totalRows: validRows.length,
         }));
       },
       error: (error) => {
@@ -137,28 +161,21 @@ export const useCSVImport = () => {
         throw new Error("User not authenticated");
       }
 
-      const transactions: any[] = await new Promise((resolve, reject) => {
+      const transactions = await new Promise<any[]>((resolve, reject) => {
         Papa.parse(state.file!, {
+          header: true,
+          dynamicTyping: true,
+          skipEmptyLines: true,
+          transformHeader: (header) => header.trim(),
           complete: (results) => {
-            const rows = results.data.slice(1) as string[][];
-            const parsedTransactions = rows
-              .map(row => {
-                const date = formatDate(row[DATE_INDEX]);
-                const amount = parseFloat(row[AMOUNT_INDEX]);
-                if (!date || amount >= 0) return null;
-                
-                return {
-                  user_id: user.id,
-                  date,
-                  description: row[DESCRIPTION_INDEX],
-                  amount,
-                  tags: [],
-                  category_id: null,
-                };
+            const validTransactions = results.data
+              .map((row: any) => {
+                const error = validateRow(row);
+                return error ? null : transformWiseData(row, user.id);
               })
               .filter((t): t is NonNullable<typeof t> => t !== null);
             
-            resolve(parsedTransactions);
+            resolve(validTransactions);
           },
           error: reject,
         });

@@ -3,16 +3,19 @@
 ## [Unreleased]
 
 ### Added
-- New budget calculation utilities in `src/utils/budget/calculations.ts`
-- New custom hook `useBudgetMetrics` for centralized budget calculations
-- Improved code organization with dedicated budget utilities folder
+- Implemented Wise CSV import functionality
+- Added specific validation for Wise format CSV files
+- Enhanced error handling with clear messages
+- Improved code organization and documentation
 
 ### Changed
-- Refactored budget calculations into reusable utility functions
-- Simplified budget calculation logic with pure functions
-- Improved type safety for budget calculations
+- Simplified CSV import to three essential columns (Date, Amount, Merchant)
+- Updated CSV parsing configuration for better data handling
+- Refactored transaction import logic for clarity
+- Improved validation and error messaging
 
 ### Technical Details
-- Created pure calculation functions for better testability
-- Implemented memoization for performance optimization
-- Centralized budget calculation logic to reduce code duplication
+- Added Papa Parse configuration for proper CSV handling
+- Implemented strict validation for required fields
+- Enhanced date formatting and validation
+- Improved error handling for common import scenarios
