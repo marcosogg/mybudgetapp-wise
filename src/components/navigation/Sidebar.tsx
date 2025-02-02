@@ -19,11 +19,22 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear any local storage data
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Navigate to auth page
       navigate("/auth");
       toast.success("Logged out successfully");
-    } catch (error) {
-      toast.error("Error logging out");
+    } catch (error: any) {
+      console.error("Error during logout:", error);
+      toast.error(error.message || "Error logging out");
+      
+      // Force logout on error
+      localStorage.removeItem('supabase.auth.token');
+      navigate("/auth");
     }
   };
 
