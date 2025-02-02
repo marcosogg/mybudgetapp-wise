@@ -30,7 +30,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Filter out transactions with invalid dates and positive amounts
+    // Filter out transactions with invalid dates and ensure amounts are negative
     const validTransactions = transactions.filter(transaction => {
       const date = transaction.date?.trim();
       const amount = parseFloat(transaction.amount);

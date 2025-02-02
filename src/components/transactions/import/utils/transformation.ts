@@ -6,7 +6,7 @@ export const transformWiseData = (row: CSVRow, userId: string) => ({
   user_id: userId,
   date: formatDate(row.Date)!,
   description: row.Merchant.trim(),
-  amount: Math.abs(row.Amount),
+  amount: row.Amount, // Keep the negative amount
   tags: [],
   category_id: null,
 });
