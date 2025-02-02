@@ -43,7 +43,7 @@ const AppRoutes = () => {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (event === 'SIGNED_OUT') {
         localStorage.removeItem('supabase.auth.token');
         queryClient.clear();
       }
