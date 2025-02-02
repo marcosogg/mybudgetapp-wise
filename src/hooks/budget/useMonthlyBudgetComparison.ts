@@ -12,12 +12,15 @@ export function useMonthlyBudgetComparison() {
   return useQuery({
     queryKey: ['monthlyBudgetComparison'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const startDate = startOfYear(new Date(2025, 0, 1));
       const endDate = addMonths(startDate, 5);
 
       const { data, error } = await supabase
         .rpc('get_monthly_budget_comparison', {
-          p_user_id: (await supabase.auth.getUser()).data.user?.id,
+          p_user_id: user.id,
           p_start_date: startDate.toISOString(),
           p_end_date: endDate.toISOString()
         });

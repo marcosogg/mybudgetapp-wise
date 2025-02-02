@@ -20,7 +20,11 @@ export function BudgetComparisonChart() {
   const startDate = startOfYear(new Date(2025, 0, 1));
   const endDate = addMonths(startDate, 5);
   
-  const { data: comparison } = useMonthlyBudgetComparison();
+  const { data: comparison, isError, error } = useMonthlyBudgetComparison();
+
+  if (isError) {
+    console.error("Error fetching budget comparison:", error);
+  }
 
   const chartData = comparison?.map((item) => ({
     month: format(new Date(item.month), 'MMMM'),

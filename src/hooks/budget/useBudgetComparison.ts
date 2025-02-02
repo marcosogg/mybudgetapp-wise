@@ -18,16 +18,17 @@ export function useBudgetComparison() {
   return useQuery({
     queryKey: ["budgetComparison", formattedDate],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke<BudgetComparison[]>(
-        "get-budget-comparison",
-        {
-          body: { period: formattedDate },
-        }
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .rpc('get_budget_comparison', {
+          p_user_id: user.id,
+          p_period: formattedDate
+        });
 
       if (error) throw error;
-      return data;
+      return data as BudgetComparison[];
     },
-    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 }
