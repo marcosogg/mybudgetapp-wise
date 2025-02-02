@@ -13,10 +13,6 @@ export const validateHeaders = (headers: string[]): ImportError | null => {
 };
 
 export const validateRow = (row: any): ImportError | null => {
-  if (!row.Merchant?.trim()) {
-    return { message: 'Merchant name is required' };
-  }
-
   const date = formatDate(row.Date);
   if (!date) {
     return { message: 'Invalid date format' };
