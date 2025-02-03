@@ -13,6 +13,9 @@
 - Updated CSV parsing configuration for better data handling
 - Refactored transaction import logic for clarity
 - Improved validation and error messaging
+- Modified amount handling to store positive values from negative CSV inputs
+- Added requirement for valid merchant data in CSV imports
+- Updated preview display to show amounts in EUR format
 
 ### Technical Details
 - Added Papa Parse configuration for proper CSV handling

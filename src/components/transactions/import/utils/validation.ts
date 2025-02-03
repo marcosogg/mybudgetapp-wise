@@ -1,7 +1,7 @@
 import { ImportError } from '../types';
 import { parse, isValid } from 'date-fns';
 
-const REQUIRED_HEADERS = ['Date', 'Amount'];
+const REQUIRED_HEADERS = ['Date', 'Amount', 'Merchant'];
 
 export const validateHeaders = (headers: string[]): ImportError | null => {
   const missingHeaders = REQUIRED_HEADERS.filter(
@@ -22,6 +22,10 @@ export const validateRow = (row: any): ImportError | null => {
   const amount = Number(row.Amount);
   if (isNaN(amount) || amount >= 0) {
     return { message: 'Amount must be a negative number' };
+  }
+
+  if (!row.Merchant?.trim()) {
+    return { message: 'Merchant is required' };
   }
 
   return null;

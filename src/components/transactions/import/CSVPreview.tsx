@@ -29,7 +29,7 @@ export const CSVPreview = ({
 
   // Calculate total amount from preview data
   const totalAmount = previewData.reduce((sum, row) => {
-    const amount = parseFloat(row.amount) || 0;
+    const amount = Math.abs(parseFloat(row.amount)) || 0;
     return sum + amount;
   }, 0);
 
@@ -49,8 +49,8 @@ export const CSVPreview = ({
               <p className="text-2xl font-bold">{totalRows}</p>
             </div>
             <div>
-              <p className="text-sm font-medium">Total Amount (Preview)</p>
-              <p className="text-2xl font-bold">${totalAmount.toFixed(2)}</p>
+              <p className="text-sm font-medium">Total Amount (EUR)</p>
+              <p className="text-2xl font-bold">€{totalAmount.toFixed(2)}</p>
             </div>
           </div>
         </CardContent>
@@ -62,19 +62,17 @@ export const CSVPreview = ({
           <Table>
             <TableHeader>
               <TableRow>
-                {headers.map((header) => (
-                  <TableHead key={header}>{header}</TableHead>
-                ))}
+                <TableHead>Date</TableHead>
+                <TableHead>Amount (EUR)</TableHead>
+                <TableHead>Merchant</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {previewData.map((row, index) => (
                 <TableRow key={index}>
-                  {headers.map((header) => (
-                    <TableCell key={header}>
-                      {row[header.toLowerCase()]}
-                    </TableCell>
-                  ))}
+                  <TableCell>{row.date}</TableCell>
+                  <TableCell>€{Math.abs(parseFloat(row.amount)).toFixed(2)}</TableCell>
+                  <TableCell>{row.merchant}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
