@@ -19,7 +19,8 @@ export const validateRow = (row: any): ImportError | null => {
     return { message: 'Invalid date format' };
   }
 
-  if (typeof row.Amount !== 'number' || row.Amount >= 0) {
+  const amount = Number(row.Amount);
+  if (isNaN(amount) || amount >= 0) {
     return { message: 'Amount must be a negative number' };
   }
 
