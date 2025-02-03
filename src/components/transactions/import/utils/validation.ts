@@ -32,15 +32,13 @@ export const validateRow = (row: any): ImportError | null => {
   const amount = Number(row.Amount);
   console.log("Parsed amount:", amount, "Original:", row.Amount);
   
-  if (isNaN(amount) || amount >= 0) {
+  if (isNaN(amount)) {
     console.log("Invalid amount:", amount);
-    return { message: 'Amount must be a negative number' };
+    return { message: 'Amount must be a number' };
   }
 
-  if (!row.Merchant?.trim()) {
-    console.log("Invalid merchant:", row.Merchant);
-    return { message: 'Merchant is required' };
-  }
+  // For Wise transactions, we accept both positive and negative amounts
+  // Positive amounts are incoming transfers, negative are expenses
 
   return null;
 };

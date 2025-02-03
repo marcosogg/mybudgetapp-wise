@@ -3,10 +3,11 @@ import { formatDate } from './validation';
 import { CSVRow, CSVParseResult } from '../types';
 
 export const transformWiseData = (row: CSVRow, userId: string) => {
+  // Keep the original amount sign - negative for expenses, positive for income
   return {
     date: formatDate(row.Date),
-    amount: Math.abs(Number(row.Amount)),
-    description: row.Merchant?.toString() || null,
+    amount: Number(row.Amount), // Don't use Math.abs anymore
+    description: row.Merchant?.toString() || row.Description?.toString() || null,
     user_id: userId
   };
 };

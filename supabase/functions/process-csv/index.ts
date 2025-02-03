@@ -7,7 +7,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -24,29 +23,26 @@ serve(async (req) => {
 
     console.log(`Processing ${transactions.length} transactions for user ${userId}`)
 
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Filter out transactions with invalid dates and ensure amounts are negative
+    // Filter out transactions with invalid dates only
     const validTransactions = transactions.filter(transaction => {
       const date = transaction.date?.trim();
-      const amount = parseFloat(transaction.amount);
-      return date && !isNaN(Date.parse(date)) && amount < 0;
+      return date && !isNaN(Date.parse(date));
     });
 
     if (validTransactions.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No valid transactions found. Make sure transactions have valid dates and negative amounts.' }),
+        JSON.stringify({ error: 'No valid transactions found. Make sure transactions have valid dates.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
     console.log(`Found ${validTransactions.length} valid transactions out of ${transactions.length} total`)
 
-    // Process transactions in batches of 100
     const batchSize = 100
     const results = []
     const skippedDuplicates = []
@@ -55,7 +51,6 @@ serve(async (req) => {
       const batch = validTransactions.slice(i, i + batchSize)
       console.log(`Processing batch ${i/batchSize + 1} of ${Math.ceil(validTransactions.length/batchSize)}`)
       
-      // For each transaction in the batch, check if it already exists
       for (const transaction of batch) {
         const { data: existingTransaction } = await supabase
           .from('transactions')
@@ -67,7 +62,6 @@ serve(async (req) => {
           .maybeSingle()
 
         if (!existingTransaction) {
-          // Only insert if the transaction doesn't exist
           const { data, error } = await supabase
             .from('transactions')
             .insert([transaction])
