@@ -53,8 +53,13 @@ export const formatDate = (dateStr: string): string | null => {
     return null;
   }
   
-  // Try DD/MM/YYYY format
-  let date = parse(dateStr, 'dd/MM/yyyy', new Date());
+  // Try DD-MM-YYYY format (Wise CSV format)
+  let date = parse(dateStr, 'dd-MM-yyyy', new Date());
+  
+  // If that fails, try DD/MM/YYYY format
+  if (!isValid(date)) {
+    date = parse(dateStr, 'dd/MM/yyyy', new Date());
+  }
   
   // If that fails, try YYYY-MM-DD format
   if (!isValid(date)) {
