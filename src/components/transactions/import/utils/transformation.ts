@@ -3,17 +3,15 @@ import { formatDate } from './validation';
 import { CSVRow, CSVParseResult } from '../types';
 
 export const transformWiseData = (row: CSVRow, userId: string) => {
-  // Convert positive amounts to negative for expenses
-  const amount = row.Merchant ? 
-    // If there's a merchant, it's an expense - make it negative
-    (Number(row.Amount) > 0 ? -Number(row.Amount) : Number(row.Amount)) :
-    // If no merchant, it's income - keep the original sign
-    Number(row.Amount);
+  // Only process rows with negative amounts and a merchant
+  if (row.Amount >= 0 || !row.Merchant) {
+    return null;
+  }
 
   return {
     date: formatDate(row.Date),
-    amount,
-    description: row.Merchant?.toString() || null,
+    amount: Number(row.Amount), // Keep the negative amount as is
+    description: row.Merchant.toString(),
     user_id: userId
   };
 };

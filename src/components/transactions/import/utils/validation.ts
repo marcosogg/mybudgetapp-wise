@@ -13,32 +13,34 @@ export const validateHeaders = (headers: string[]): ImportError | null => {
   
   if (missingHeaders.length > 0) {
     console.log("Missing headers:", missingHeaders);
+    return { message: `Missing required columns: ${missingHeaders.join(', ')}` };
   }
   
-  return missingHeaders.length > 0
-    ? { message: `Missing required columns: ${missingHeaders.join(', ')}` }
-    : null;
+  return null;
 };
 
 export const validateRow = (row: any): ImportError | null => {
   console.log("Validating row:", row);
   
+  // Check if date is valid
   const date = formatDate(row.Date);
   if (!date) {
     console.log("Invalid date:", row.Date);
     return { message: 'Invalid date format' };
   }
 
+  // Check if amount is a valid negative number
   const amount = Number(row.Amount);
-  console.log("Parsed amount:", amount, "Original:", row.Amount);
-  
   if (isNaN(amount)) {
     console.log("Invalid amount:", amount);
     return { message: 'Amount must be a number' };
   }
 
-  // For Wise transactions, we accept both positive and negative amounts
-  // Positive amounts are incoming transfers, negative are expenses
+  // Check if merchant exists
+  if (!row.Merchant?.trim()) {
+    console.log("Missing merchant");
+    return { message: 'Merchant is required' };
+  }
 
   return null;
 };

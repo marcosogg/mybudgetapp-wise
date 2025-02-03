@@ -28,15 +28,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Filter out transactions with invalid dates only
+    // Filter out invalid transactions
     const validTransactions = transactions.filter(transaction => {
-      const date = transaction.date?.trim();
-      return date && !isNaN(Date.parse(date));
+      return transaction && 
+             transaction.date && 
+             transaction.amount < 0 && 
+             transaction.description;
     });
 
     if (validTransactions.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No valid transactions found. Make sure transactions have valid dates.' }),
+        JSON.stringify({ error: 'No valid transactions found.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
