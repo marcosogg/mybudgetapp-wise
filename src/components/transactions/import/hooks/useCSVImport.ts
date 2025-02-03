@@ -49,19 +49,36 @@ export const useCSVImport = () => {
     
     try {
       const results = await parseCSVData(selectedFile);
-      const headerError = validateHeaders(Object.keys(results.data[0] || {}));
+      console.log("Raw CSV data:", results.data);
+      
+      const headers = Object.keys(results.data[0] || {});
+      console.log("CSV Headers:", headers);
+      
+      const headerError = validateHeaders(headers);
       
       if (headerError) {
+        console.log("Header validation failed:", headerError);
         setState(prev => ({ ...prev, error: headerError.message }));
         return;
       }
 
       const validRows = results.data
         .map((row: CSVRow) => {
+          console.log("Processing row:", row);
+          console.log("Amount type:", typeof row.Amount);
+          console.log("Amount value:", row.Amount);
+          console.log("Merchant value:", row.Merchant);
+          
           const error = validateRow(row);
-          return error ? null : row;
+          if (error) {
+            console.log("Row validation failed:", error);
+            return null;
+          }
+          return row;
         })
         .filter((row): row is NonNullable<typeof row> => row !== null);
+
+      console.log("Valid rows count:", validRows.length);
 
       if (validRows.length === 0) {
         setState(prev => ({
@@ -81,6 +98,7 @@ export const useCSVImport = () => {
         totalRows: validRows.length,
       }));
     } catch (error: any) {
+      console.error("CSV parsing error:", error);
       toast({
         title: "Error parsing CSV",
         description: error.message,
